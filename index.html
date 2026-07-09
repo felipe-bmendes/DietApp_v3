@@ -57,6 +57,7 @@
         </div>
     </div>
 
+  <!-- PÁGINA 2: OBJETIVOS -->
     <div id="page-goals" class="page">
         <h2 class="top-left-title">METAS DE CONSUMO DIÁRIO</h2>
         <div id="goals-question">
@@ -75,12 +76,31 @@
         </div>
 
         <div id="goals-manual" style="display:none;">
-            <p><strong>GASTO CALÓRICO DIÁRIO:</strong> <span id="display-tdee">0</span> kcal (Equação Harris-Benedict)</p>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <p style="margin: 0;"><strong>GASTO CALÓRICO:</strong> <span id="display-tdee">0</span> kcal</p>
+                <button id="btn-recalc-goals" class="icon-btn" style="padding: 5px 10px; border: 1px solid #000; border-radius: 5px; cursor: pointer; background: #eee;"><i class="fa-solid fa-calculator"></i></button>
+            </div>
             <table class="goals-table">
-                <tr><td>Calorias:</td><td><input type="number" id="goal-kcal"></td><td></td></tr>
-                <tr><td>Proteínas:</td><td><input type="number" id="goal-prot"></td><td id="goal-prot-kg">0 g/kg</td></tr>
-                <tr><td>Gorduras:</td><td><input type="number" id="goal-fat"></td><td id="goal-fat-kg">0 g/kg</td></tr>
-                <tr><td>Carboidratos:</td><td><input type="number" id="goal-carb"></td><td id="goal-carb-kg">0 g/kg</td></tr>
+                <tr>
+                    <td>Calorias:</td>
+                    <td><input type="number" id="goal-kcal" style="width:70px;"></td>
+                    <td style="display:flex; align-items:center; gap:5px; border-bottom:none;"><input type="text" inputmode="text" id="goal-kcal-pct" style="width:50px;"> %</td>
+                </tr>
+                <tr>
+                    <td>Proteínas:</td>
+                    <td><input type="number" id="goal-prot" style="width:70px;"></td>
+                    <td style="display:flex; align-items:center; gap:5px; border-bottom:none;"><input type="text" inputmode="decimal" id="goal-prot-kg" style="width:50px;"> g/kg</td>
+                </tr>
+                <tr>
+                    <td>Gorduras:</td>
+                    <td><input type="number" id="goal-fat" style="width:70px;"></td>
+                    <td style="display:flex; align-items:center; gap:5px; border-bottom:none;"><input type="text" inputmode="decimal" id="goal-fat-kg" style="width:50px;"> g/kg</td>
+                </tr>
+                <tr>
+                    <td>Carboidratos:</td>
+                    <td><input type="number" id="goal-carb" style="width:70px;"></td>
+                    <td style="display:flex; align-items:center; gap:5px; border-bottom:none;"><input type="text" inputmode="decimal" id="goal-carb-kg" style="width:50px;"> g/kg</td>
+                </tr>
             </table>
             <button id="save-goals-btn" class="action-btn"><i class="fa-solid fa-check"></i></button>
         </div>
