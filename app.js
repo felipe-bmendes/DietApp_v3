@@ -9,11 +9,53 @@ document.addEventListener('DOMContentLoaded', async () => {
     const today = new Date().toISOString().split('T')[0];
     let availableFoods = [];
 
-    // Variáveis Globais para o Histórico (Página 4)
+    // Variáveis Globais Histórico
     let historyChartInstance = null;
-    let histMode = 'macros'; // 'macros' ou 'body'
-    let histSubMode = 'kcal'; // kcal, prot, carb, fat | weight, bf, imc, muscle, massGorda, water
+    let histMode = 'macros';
+    let histSubMode = 'kcal';
     let histRefDate = today;
+
+    // Variável para controle de Notificações diárias
+    let notifiedMeals = { date: today };
+
+    // Verifica permissão de notificação logo de início
+    if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+        Notification.requestPermission();
+    }
+
+    // Loop que checa as notificações a cada 1 minuto (60000 ms)
+    setInterval(async () => {
+        const now = new Date();
+        const currentStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        const todayStr = now.toISOString().split('T')[0];
+
+        // Reseta o controle no dia seguinte para notificar de novo
+        if(notifiedMeals.date !== todayStr) notifiedMeals = { date: todayStr };
+
+        let allInf2 = await getAllData('Inf_2') || [];
+        const mealConfigs = allInf2.filter(d => d.type === 'mealName');
+        
+        mealConfigs.forEach(meal => {
+            if(meal.time && meal.reminder > 0) {
+                let mealTimeDate = new Date();
+                let [h, m] = meal.time.split(':');
+                mealTimeDate.setHours(parseInt(h), parseInt(m), 0, 0);
+                // Subtrai os minutos do lembrete
+                mealTimeDate.setMinutes(mealTimeDate.getMinutes() - meal.reminder);
+                
+                let remStr = `${String(mealTimeDate.getHours()).padStart(2, '0')}:${String(mealTimeDate.getMinutes()).padStart(2, '0')}`;
+                
+                if(currentStr === remStr && !notifiedMeals[meal.name]) {
+                    if (Notification.permission === 'granted') {
+                        new Notification("DietApp - Lembrete", {
+                            body: `Sua refeição "${meal.name}" está programada para as ${meal.time}.`,
+                        });
+                        notifiedMeals[meal.name] = true;
+                    }
+                }
+            }
+        });
+    }, 60000);
 
     // Verifica se Inf_1 existe
     let userData = await getData('Inf_1', 1);
@@ -36,10 +78,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             const targetId = e.currentTarget.getAttribute('data-target');
             document.getElementById(targetId).classList.add('screen-active');
             
+            if (targetId === 'page-home') loadHomePage();
             if (targetId === 'page-goals') loadGoalsPage();
-            if (targetId === 'page-profile') loadProfilePage();
             if (targetId === 'page-add') loadAddMealPage();
             if (targetId === 'page-history') loadHistoryPage();
+            if (targetId === 'page-food') loadFoodPage();
+            if (targetId === 'page-profile') loadProfilePage();
         });
     });
 
@@ -67,7 +111,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadHomePage();
     });
 
-    // Função auxiliar para calcular Idade
     function calcAge(birthDateString) {
         const birthDate = new Date(birthDateString);
         const todayDate = new Date();
@@ -77,7 +120,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         return age;
     }
 
-    // Carregar Home (Página 1)
+    // =========================================================
+    // LÓGICA DA PÁGINA 1 (HOME)
+    // =========================================================
     async function loadHomePage() {
         userData = await getData('Inf_1', 1);
         let todayData = await getData('Inf_3', today) || { date: today, meals: [] };
@@ -88,26 +133,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (todayData.meals) {
             todayData.meals.forEach(meal => {
                 meal.foods.forEach(food => {
-                    consumed.kcal += food.kcal;
-                    consumed.prot += food.prot;
-                    consumed.carb += food.carb;
-                    consumed.fat += food.fat;
+                    consumed.kcal += food.kcal; consumed.prot += food.prot;
+                    consumed.carb += food.carb; consumed.fat += food.fat;
                 });
             });
         }
 
         const targets = {
-            kcal: todayData.target_kcal || 0,
-            prot: todayData.target_prot || 0,
-            carb: todayData.target_carb || 0,
-            fat: todayData.target_fat || 0
+            kcal: todayData.target_kcal || 0, prot: todayData.target_prot || 0,
+            carb: todayData.target_carb || 0, fat: todayData.target_fat || 0
         };
 
         const updateBar = (id, current, target, unit) => {
             const bar = document.getElementById(`bar-${id}`);
             const text = document.getElementById(`text-${id}-val`);
             text.innerText = `${Math.round(current)}/${Math.round(target)} ${unit}`;
-            
             let percentage = target > 0 ? (current / target) * 100 : 0;
             if (percentage > 100) percentage = 100; 
             bar.style.width = `${percentage}%`;
@@ -129,44 +169,28 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 let mealTotal = { kcal: 0, prot: 0, carb: 0, fat: 0 };
                 meal.foods.forEach(f => {
-                    mealTotal.kcal += f.kcal; 
-                    mealTotal.prot += f.prot;
-                    mealTotal.carb += f.carb; 
-                    mealTotal.fat += f.fat;
+                    mealTotal.kcal += f.kcal; mealTotal.prot += f.prot;
+                    mealTotal.carb += f.carb; mealTotal.fat += f.fat;
                 });
 
                 mealBox.innerHTML = `
                     <div class="meal-header" style="display: flex; justify-content: space-between; padding: 12px; background: #fff; border: 1px solid #000; cursor: pointer;">
                         <span><strong>${meal.name}</strong></span>
-                        <span>
-                            ${meal.time}
-                            <i class="fa-solid fa-pencil edit-meal-btn" style="margin-left: 15px; cursor: pointer;"></i>
-                        </span>
+                        <span>${meal.time} <i class="fa-solid fa-pencil edit-meal-btn" style="margin-left: 15px; cursor: pointer;"></i></span>
                     </div>
                     <div class="meal-details" style="display: none; padding: 0; border: 1px solid #000; border-top: none;">
                         <table class="macro-table" style="width: 100%; border: none; font-size: 13px; margin: 0;">
-                            <thead>
-                                <tr style="background: #eee;">
-                                    <th>ALIMENTO</th><th>QTDE</th><th>CAL</th><th>PROT</th><th>CARB</th><th>GORD</th>
-                                </tr>
-                            </thead>
+                            <thead><tr style="background: #eee;"><th>ALIMENTO</th><th>QTDE</th><th>CAL</th><th>PROT</th><th>CARB</th><th>GORD</th></tr></thead>
                             <tbody>
                                 ${meal.foods.map((food, foodIndex) => `
                                     <tr>
                                         <td>${food.name}</td>
                                         <td class="editable-qty" data-meal="${mealIndex}" data-food="${foodIndex}" style="cursor:pointer; color: #0066cc; text-decoration: underline; font-weight: bold;">${Math.round(food.amount)}</td>
-                                        <td>${Math.round(food.kcal)}</td>
-                                        <td>${Math.round(food.prot)}</td>
-                                        <td>${Math.round(food.carb)}</td>
-                                        <td>${Math.round(food.fat)}</td>
+                                        <td>${Math.round(food.kcal)}</td><td>${Math.round(food.prot)}</td><td>${Math.round(food.carb)}</td><td>${Math.round(food.fat)}</td>
                                     </tr>
                                 `).join('')}
-                                <tr style="font-weight: bold; background: #f5f5f5;">
-                                    <td colspan="2" style="text-align: right; padding-right: 10px;">TOTAL</td>
-                                    <td>${Math.round(mealTotal.kcal)}</td>
-                                    <td>${Math.round(mealTotal.prot)}</td>
-                                    <td>${Math.round(mealTotal.carb)}</td>
-                                    <td>${Math.round(mealTotal.fat)}</td>
+                                <tr style="font-weight: bold; background: #f5f5f5;"><td colspan="2" style="text-align: right; padding-right: 10px;">TOTAL</td>
+                                    <td>${Math.round(mealTotal.kcal)}</td><td>${Math.round(mealTotal.prot)}</td><td>${Math.round(mealTotal.carb)}</td><td>${Math.round(mealTotal.fat)}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -189,22 +213,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             cell.addEventListener('click', async (e) => {
                 const mealIdx = e.target.getAttribute('data-meal');
                 const foodIdx = e.target.getAttribute('data-food');
-                
                 let currentFood = todayData.meals[mealIdx].foods[foodIdx];
-                
                 let newAmount = prompt(`Editar quantidade (g/ml) de ${currentFood.name}:`, Math.round(currentFood.amount));
                 
                 if (newAmount !== null && !isNaN(newAmount) && newAmount > 0) {
                     newAmount = parseFloat(newAmount);
-                    
                     const ratio = newAmount / currentFood.amount;
-                    
                     currentFood.amount = newAmount;
-                    currentFood.kcal *= ratio;
-                    currentFood.prot *= ratio;
-                    currentFood.carb *= ratio;
-                    currentFood.fat *= ratio;
-
+                    currentFood.kcal *= ratio; currentFood.prot *= ratio;
+                    currentFood.carb *= ratio; currentFood.fat *= ratio;
                     await saveData('Inf_3', todayData);
                     loadHomePage(); 
                 }
@@ -212,7 +229,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // Lógica da Página de Objetivos
+    // =========================================================
+    // LÓGICA DA PÁGINA 2 (OBJETIVOS)
+    // =========================================================
     document.getElementById('btn-goals-yes').addEventListener('click', () => {
         document.getElementById('goals-question').style.display = 'none';
         document.getElementById('goals-manual').style.display = 'block';
@@ -231,18 +250,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         let weight = todayData?.weight || 70; 
         let fa = todayData?.activityLevel || 1.2;
         let age = calcAge(userData.birth);
-        
         let gcd = 0;
-        if (userData.sex === 'M') {
-            gcd = (66.7 + (13.75 * weight) + (5 * userData.height) - (6.8 * age)) * fa;
-        } else {
-            gcd = (655.1 + (9.56 * weight) + (1.85 * userData.height) - (4.68 * age)) * fa;
-        }
+        if (userData.sex === 'M') { gcd = (66.7 + (13.75 * weight) + (5 * userData.height) - (6.8 * age)) * fa; } 
+        else { gcd = (655.1 + (9.56 * weight) + (1.85 * userData.height) - (4.68 * age)) * fa; }
         
         todayData = todayData || { date: today, meals: [] };
         todayData.tdee = Math.round(gcd);
         await saveData('Inf_3', todayData);
-        
         document.getElementById('display-tdee').innerText = todayData.tdee;
     }
 
@@ -252,16 +266,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             let todayData = await getData('Inf_3', today);
             let w = todayData.weight;
             let gcd = todayData.tdee;
-            
             let kcal=0, prot=0, fat=0, carb=0;
             
-            if (goal === 'bulking') {
-                kcal = 1.2 * gcd; prot = 2 * w; fat = 1 * w;
-            } else if (goal === 'cutting') {
-                kcal = 0.8 * gcd; prot = 2.5 * w; fat = 1 * w;
-            } else if (goal === 'maintenance') {
-                kcal = 1.0 * gcd; prot = 2 * w; fat = 1 * w;
-            }
+            if (goal === 'bulking') { kcal = 1.2 * gcd; prot = 2 * w; fat = 1 * w; } 
+            else if (goal === 'cutting') { kcal = 0.8 * gcd; prot = 2.5 * w; fat = 1 * w; } 
+            else if (goal === 'maintenance') { kcal = 1.0 * gcd; prot = 2 * w; fat = 1 * w; }
             carb = (kcal - (prot * 4) - (fat * 9)) / 4;
             
             document.getElementById('goal-kcal').value = Math.round(kcal);
@@ -287,13 +296,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         todayData.target_prot = parseFloat(document.getElementById('goal-prot').value);
         todayData.target_fat = parseFloat(document.getElementById('goal-fat').value);
         todayData.target_carb = parseFloat(document.getElementById('goal-carb').value);
-        
         await saveData('Inf_3', todayData);
         alert('Metas salvas para hoje!');
         loadHomePage(); 
     });
 
-    // Lógica da Página 3 (Adicionar Refeição)
+    // =========================================================
+    // LÓGICA DA PÁGINA 3 (ADICIONAR REFEIÇÃO)
+    // =========================================================
     async function loadAddMealPage() {
         const inf2 = await getAllData('Inf_2') || [];
         const mealNames = inf2.filter(item => item.type === 'mealName');
@@ -304,88 +314,50 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (mealNames.length > 0) {
             mealNames.forEach(m => {
                 const opt = document.createElement('option');
-                opt.value = m.name;
-                opt.innerText = m.name;
-                nameSelect.appendChild(opt);
+                opt.value = m.name; opt.innerText = m.name; nameSelect.appendChild(opt);
             });
         } else {
             ['Café da Manhã', 'Lanche da Manhã', 'Almoço', 'Lanche da Tarde', 'Jantar', 'Ceia'].forEach(name => {
                 const opt = document.createElement('option');
-                opt.value = name;
-                opt.innerText = name;
-                nameSelect.appendChild(opt);
+                opt.value = name; opt.innerText = name; nameSelect.appendChild(opt);
             });
         }
 
         const now = new Date();
-        const hh = String(now.getHours()).padStart(2, '0');
-        const mm = String(now.getMinutes()).padStart(2, '0');
-        document.getElementById('add-meal-time').value = `${hh}:${mm}`;
+        document.getElementById('add-meal-time').value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
         let datalist = document.getElementById('food-options');
-        if (!datalist) {
-            datalist = document.createElement('datalist');
-            datalist.id = 'food-options';
-            document.body.appendChild(datalist);
-        }
+        if (!datalist) { datalist = document.createElement('datalist'); datalist.id = 'food-options'; document.body.appendChild(datalist); }
         datalist.innerHTML = '';
         
-        if (availableFoods.length === 0) {
-            const mockFoods = [
-                { type: 'food', name: 'Arroz Branco', amount: 100, prot: 2.5, carb: 28, fat: 0.2, kcal: 130 },
-                { type: 'food', name: 'Feijão Carioca', amount: 100, prot: 4.8, carb: 13.6, fat: 0.5, kcal: 76 },
-                { type: 'food', name: 'Frango Grelhado', amount: 100, prot: 32, carb: 0, fat: 2.5, kcal: 159 },
-                { type: 'food', name: 'Ovo Cozido', amount: 50, prot: 6.5, carb: 0.5, fat: 5, kcal: 75 }
-            ];
-            for (let f of mockFoods) await saveData('Inf_2', f);
-            availableFoods = mockFoods;
-        }
-
         availableFoods.forEach(f => {
             const opt = document.createElement('option');
-            opt.value = f.name;
-            datalist.appendChild(opt);
+            opt.value = f.name; datalist.appendChild(opt);
         });
 
-        const tbody = document.getElementById('add-meal-tbody');
-        tbody.innerHTML = '';
+        document.getElementById('add-meal-tbody').innerHTML = '';
         addMealRow();
     }
 
     function addMealRow() {
         const tbody = document.getElementById('add-meal-tbody');
         const tr = document.createElement('tr');
-        
         tr.innerHTML = `
             <td><input type="text" list="food-options" class="row-food-name" style="width:100%; box-sizing:border-box;"></td>
             <td><input type="number" class="row-food-qty" style="width:50px;" min="1"></td>
-            <td class="row-prot">0</td>
-            <td class="row-carb">0</td>
-            <td class="row-fat">0</td>
-            <td class="row-kcal">0</td>
+            <td class="row-prot">0</td><td class="row-carb">0</td><td class="row-fat">0</td><td class="row-kcal">0</td>
         `;
-
         const nameInput = tr.querySelector('.row-food-name');
         const qtyInput = tr.querySelector('.row-food-qty');
         
-        tr.dataset.baseAmount = 0;
-        tr.dataset.baseProt = 0;
-        tr.dataset.baseCarb = 0;
-        tr.dataset.baseFat = 0;
-        tr.dataset.baseKcal = 0;
+        tr.dataset.baseAmount = 0; tr.dataset.baseProt = 0; tr.dataset.baseCarb = 0; tr.dataset.baseFat = 0; tr.dataset.baseKcal = 0;
 
         nameInput.addEventListener('input', (e) => {
-            const selectedName = e.target.value;
-            const food = availableFoods.find(f => f.name.toLowerCase() === selectedName.toLowerCase());
-            
+            const food = availableFoods.find(f => f.name.toLowerCase() === e.target.value.toLowerCase());
             if (food) {
                 qtyInput.value = Math.round(food.amount);
-                tr.dataset.baseAmount = food.amount;
-                tr.dataset.baseProt = food.prot;
-                tr.dataset.baseCarb = food.carb;
-                tr.dataset.baseFat = food.fat;
-                tr.dataset.baseKcal = food.kcal;
-                
+                tr.dataset.baseAmount = food.amount; tr.dataset.baseProt = food.prot;
+                tr.dataset.baseCarb = food.carb; tr.dataset.baseFat = food.fat; tr.dataset.baseKcal = food.kcal;
                 updateRowVisuals(tr, 1);
             }
         });
@@ -393,15 +365,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         qtyInput.addEventListener('input', (e) => {
             const baseAmount = parseFloat(tr.dataset.baseAmount);
             const newAmount = parseFloat(e.target.value);
-            
-            if (baseAmount > 0 && !isNaN(newAmount) && newAmount > 0) {
-                const ratio = newAmount / baseAmount;
-                updateRowVisuals(tr, ratio);
-            } else {
-                updateRowVisuals(tr, 0);
-            }
+            if (baseAmount > 0 && !isNaN(newAmount) && newAmount > 0) updateRowVisuals(tr, newAmount / baseAmount);
+            else updateRowVisuals(tr, 0);
         });
-
         tbody.appendChild(tr);
     }
 
@@ -412,13 +378,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         tr.querySelector('.row-kcal').innerText = Math.round(parseFloat(tr.dataset.baseKcal) * ratio);
     }
 
-    document.getElementById('add-row-btn').addEventListener('click', () => { addMealRow(); });
+    document.getElementById('add-row-btn').addEventListener('click', () => addMealRow());
 
     document.getElementById('save-meal-btn').addEventListener('click', async () => {
         const mealName = document.getElementById('add-meal-name').value;
         const mealTime = document.getElementById('add-meal-time').value;
-        const tbody = document.getElementById('add-meal-tbody');
-        const rows = tbody.querySelectorAll('tr');
+        const rows = document.getElementById('add-meal-tbody').querySelectorAll('tr');
         
         let foodsToSave = [];
         let hasError = false;
@@ -426,18 +391,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         rows.forEach(tr => {
             const name = tr.querySelector('.row-food-name').value;
             const qty = parseFloat(tr.querySelector('.row-food-qty').value);
-            
             if (name && name.trim() !== '') {
-                if (isNaN(qty) || qty <= 0) {
-                    hasError = true;
-                } else {
+                if (isNaN(qty) || qty <= 0) hasError = true;
+                else {
                     foodsToSave.push({
-                        name: name.trim(),
-                        amount: qty,
-                        prot: parseFloat(tr.querySelector('.row-prot').innerText),
-                        carb: parseFloat(tr.querySelector('.row-carb').innerText),
-                        fat: parseFloat(tr.querySelector('.row-fat').innerText),
-                        kcal: parseFloat(tr.querySelector('.row-kcal').innerText)
+                        name: name.trim(), amount: qty,
+                        prot: parseFloat(tr.querySelector('.row-prot').innerText), carb: parseFloat(tr.querySelector('.row-carb').innerText),
+                        fat: parseFloat(tr.querySelector('.row-fat').innerText), kcal: parseFloat(tr.querySelector('.row-kcal').innerText)
                     });
                 }
             }
@@ -456,61 +416,34 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.querySelector('[data-target="page-home"]').classList.add('active');
         document.querySelectorAll('.page').forEach(p => p.classList.remove('screen-active'));
         document.getElementById('page-home').classList.add('screen-active');
-        
         loadHomePage();
     });
 
     // =========================================================
     // LÓGICA DA PÁGINA 4 (HISTÓRICO E GRÁFICOS)
     // =========================================================
-    
-    // Controles dos ícones do topo
-    document.querySelector('.hist-btn[data-type="macros"]').addEventListener('click', (e) => {
-        histMode = 'macros';
-        histSubMode = 'kcal'; // Padrão ao mudar para alvo
-        loadHistoryPage();
-    });
+    document.querySelector('.hist-btn[data-type="macros"]').addEventListener('click', () => { histMode = 'macros'; histSubMode = 'kcal'; loadHistoryPage(); });
+    document.querySelector('.hist-btn[data-type="body"]').addEventListener('click', () => { histMode = 'body'; histSubMode = 'weight'; loadHistoryPage(); });
 
-    document.querySelector('.hist-btn[data-type="body"]').addEventListener('click', (e) => {
-        histMode = 'body';
-        histSubMode = 'weight'; // Padrão ao mudar para balança
-        loadHistoryPage();
-    });
-
-    // Lógica do Calendário Nativo Pop-up
     document.querySelector('.fa-calendar').parentElement.addEventListener('click', () => {
         let dInput = document.createElement('input');
-        dInput.type = 'date';
-        dInput.style.position = 'absolute';
-        dInput.style.opacity = 0;
+        dInput.type = 'date'; dInput.style.position = 'absolute'; dInput.style.opacity = 0;
         document.body.appendChild(dInput);
-        
         dInput.addEventListener('change', (e) => {
-            if(e.target.value) {
-                histRefDate = e.target.value;
-                loadHistoryPage();
-            }
+            if(e.target.value) { histRefDate = e.target.value; loadHistoryPage(); }
             document.body.removeChild(dInput);
         });
-        // Aciona a abertura do calendário do dispositivo
         dInput.showPicker ? dInput.showPicker() : dInput.click();
     });
 
     async function loadHistoryPage() {
         document.getElementById('history-year').innerText = histRefDate.split('-')[0];
-
-        // Buscar dados do Inf_3
         let allData = await getAllData('Inf_3') || [];
-        
-        // Configurar a janela de 10 dias
         let endDateObj = new Date(histRefDate + 'T12:00:00'); 
         let startDateObj = new Date(endDateObj);
         startDateObj.setDate(startDateObj.getDate() - 9);
 
-        let labels = [];
-        let chartData = [];
-        let targetData = [];
-        let pointColors = [];
+        let labels = [], chartData = [], targetData = [], pointColors = [];
 
         for (let i = 0; i <= 9; i++) {
             let d = new Date(startDateObj);
@@ -519,34 +452,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             labels.push(`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`);
 
             let dayData = allData.find(x => x.date === dStr);
-            let val = null;
-            let target = null;
+            let val = null, target = null;
 
             if (dayData) {
                 if (histMode === 'macros') {
                     let consumed = {kcal:0, prot:0, carb:0, fat:0};
-                    if (dayData.meals) {
-                        dayData.meals.forEach(m => m.foods.forEach(f => {
-                            consumed.kcal += f.kcal; consumed.prot += f.prot;
-                            consumed.carb += f.carb; consumed.fat += f.fat;
-                        }));
-                    }
-
+                    if (dayData.meals) dayData.meals.forEach(m => m.foods.forEach(f => { consumed.kcal+=f.kcal; consumed.prot+=f.prot; consumed.carb+=f.carb; consumed.fat+=f.fat; }));
+                    
                     if (histSubMode === 'kcal') { val = consumed.kcal; target = dayData.target_kcal || 0; }
                     else if (histSubMode === 'prot') { val = consumed.prot; target = dayData.target_prot || 0; }
                     else if (histSubMode === 'carb') { val = consumed.carb; target = dayData.target_carb || 0; }
                     else if (histSubMode === 'fat') { val = consumed.fat; target = dayData.target_fat || 0; }
 
-                    chartData.push(val);
-                    targetData.push(target);
-
-                    // Lógica de Cor: Verde se estiver até 10% da meta, senão Vermelho
-                    if (target > 0) {
-                        let diff = Math.abs(val - target) / target;
-                        pointColors.push(diff <= 0.1 ? '#4caf50' : '#f44336'); 
-                    } else {
-                        pointColors.push('#555');
-                    }
+                    chartData.push(val); targetData.push(target);
+                    pointColors.push((target > 0 && Math.abs(val - target)/target <= 0.1) ? '#4caf50' : '#f44336'); 
                 } else {
                     if (histSubMode === 'weight') val = dayData.weight || null;
                     else if (histSubMode === 'bf') val = dayData.bf || null;
@@ -554,132 +473,358 @@ document.addEventListener('DOMContentLoaded', async () => {
                     else if (histSubMode === 'muscle') val = dayData.muscle || null;
                     else if (histSubMode === 'massGorda') val = dayData.massGorda || null;
                     else if (histSubMode === 'water') val = dayData.water || null;
-
-                    chartData.push(val);
-                    targetData.push(null);
-                    pointColors.push('#000');
+                    chartData.push(val); targetData.push(null); pointColors.push('#000');
                 }
-            } else {
-                chartData.push(null);
-                targetData.push(null);
-                pointColors.push('#555');
-            }
+            } else { chartData.push(null); targetData.push(null); pointColors.push('#555'); }
         }
 
         const ctx = document.getElementById('historyChart').getContext('2d');
         if (historyChartInstance) historyChartInstance.destroy();
 
         let datasets = [{
-            label: histSubMode.toUpperCase(),
-            data: chartData,
-            backgroundColor: pointColors,
-            borderColor: '#000',
-            borderWidth: 1,
-            pointRadius: 6,
-            pointHoverRadius: 8,
-            fill: false,
-            type: 'line',
-            spanGaps: true // Pula dias sem registro conectando a linha
+            label: histSubMode.toUpperCase(), data: chartData, backgroundColor: pointColors, borderColor: '#000',
+            borderWidth: 1, pointRadius: 6, pointHoverRadius: 8, fill: false, type: 'line', spanGaps: true 
         }];
 
-        // Adiciona a linha de Meta tracejada se estiver no modo macros
         if (histMode === 'macros') {
-            datasets.push({
-                label: 'Meta',
-                data: targetData,
-                borderColor: '#4da6ff',
-                borderWidth: 2,
-                pointRadius: 0,
-                fill: false,
-                type: 'line',
-                borderDash: [5, 5]
-            });
+            datasets.push({ label: 'Meta', data: targetData, borderColor: '#4da6ff', borderWidth: 2, pointRadius: 0, fill: false, type: 'line', borderDash: [5, 5] });
         }
 
         historyChartInstance = new Chart(ctx, {
-            type: 'line',
-            data: { labels: labels, datasets: datasets },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: { y: { beginAtZero: false } },
-                plugins: { legend: { display: false } },
+            type: 'line', data: { labels: labels, datasets: datasets },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: false } }, plugins: { legend: { display: false } },
                 onClick: (e, elements) => {
-                    // Ao clicar em uma bolinha, atualiza os dados mostrados no quadro inferior
                     if (elements.length > 0) {
-                        let idx = elements[0].index;
                         let d = new Date(startDateObj);
-                        d.setDate(d.getDate() + idx);
-                        let clickedDate = d.toISOString().split('T')[0];
-                        updateHistoryGrid(clickedDate, allData);
+                        d.setDate(d.getDate() + elements[0].index);
+                        updateHistoryGrid(d.toISOString().split('T')[0], allData);
                     }
                 }
             }
         });
-
-        // Inicializa o quadro inferior com a data de referência selecionada
         updateHistoryGrid(histRefDate, allData);
     }
 
-    // Função que monta a tabela inferior dinamicamente e habilita os cliques nas opções
     function updateHistoryGrid(dateStr, allData) {
         let container = document.getElementById('history-data-macros');
         let dayData = allData.find(x => x.date === dateStr) || {};
         
         if(histMode === 'macros') {
             let consumed = {kcal:0, prot:0, carb:0, fat:0};
-            if(dayData.meals) {
-                dayData.meals.forEach(m => m.foods.forEach(f => {
-                    consumed.kcal += f.kcal; consumed.prot += f.prot;
-                    consumed.carb += f.carb; consumed.fat += f.fat;
-                }));
-            }
+            if(dayData.meals) dayData.meals.forEach(m => m.foods.forEach(f => { consumed.kcal+=f.kcal; consumed.prot+=f.prot; consumed.carb+=f.carb; consumed.fat+=f.fat; }));
             
-            // Textos destacados ganham fundo cinza e negrito dependendo do 'histSubMode'
             container.innerHTML = `
                 <div class="col-left">
-                    <p>Meta na época: ${Math.round(dayData.target_kcal||0)} Kcal</p>
-                    <p>GCD: ${dayData.tdee||0} Kcal</p>
-                    <p class="clickable-hist" data-sub="kcal" style="${histSubMode==='kcal'?'font-weight:bold; background:#e0e0e0;':''} cursor:pointer; padding:2px;">Calorias: ${Math.round(consumed.kcal)}</p>
+                    <p>Meta: ${Math.round(dayData.target_kcal||0)} Kcal</p><p>GCD: ${dayData.tdee||0} Kcal</p>
+                    <p class="clickable-hist" data-sub="kcal" style="${histSubMode==='kcal'?'font-weight:bold; background:#e0e0e0;':''} cursor:pointer;">Calorias: ${Math.round(consumed.kcal)}</p>
                 </div>
                 <div class="col-center">
-                    <p class="clickable-hist" data-sub="prot" style="${histSubMode==='prot'?'font-weight:bold; background:#e0e0e0;':''} cursor:pointer; padding:2px;">Proteínas: ${Math.round(consumed.prot)}g</p>
-                    <p class="clickable-hist" data-sub="carb" style="${histSubMode==='carb'?'font-weight:bold; background:#e0e0e0;':''} cursor:pointer; padding:2px;">Carboidratos: ${Math.round(consumed.carb)}g</p>
-                    <p class="clickable-hist" data-sub="fat" style="${histSubMode==='fat'?'font-weight:bold; background:#e0e0e0;':''} cursor:pointer; padding:2px;">Gorduras: ${Math.round(consumed.fat)}g</p>
+                    <p class="clickable-hist" data-sub="prot" style="${histSubMode==='prot'?'font-weight:bold; background:#e0e0e0;':''} cursor:pointer;">Proteínas: ${Math.round(consumed.prot)}g</p>
+                    <p class="clickable-hist" data-sub="carb" style="${histSubMode==='carb'?'font-weight:bold; background:#e0e0e0;':''} cursor:pointer;">Carboidratos: ${Math.round(consumed.carb)}g</p>
+                    <p class="clickable-hist" data-sub="fat" style="${histSubMode==='fat'?'font-weight:bold; background:#e0e0e0;':''} cursor:pointer;">Gorduras: ${Math.round(consumed.fat)}g</p>
                 </div>
                 <div class="col-right">
-                    <p>Meta prot.: ${Math.round(dayData.target_prot||0)}g</p>
-                    <p>Meta carb.: ${Math.round(dayData.target_carb||0)}g</p>
-                    <p>Meta gord.: ${Math.round(dayData.target_fat||0)}g</p>
-                    <button class="small-btn" style="margin-top:5px; width:100%;">Alimentos</button>
+                    <p>Meta prot.: ${Math.round(dayData.target_prot||0)}g</p><p>Meta carb.: ${Math.round(dayData.target_carb||0)}g</p><p>Meta gord.: ${Math.round(dayData.target_fat||0)}g</p>
                 </div>
             `;
         } else {
              container.innerHTML = `
                 <div class="col-left">
-                    <p class="clickable-hist" data-sub="weight" style="${histSubMode==='weight'?'font-weight:bold; background:#e0e0e0;':''} cursor:pointer; padding:2px;">Peso: ${dayData.weight||0} Kgs</p>
-                    <p class="clickable-hist" data-sub="bf" style="${histSubMode==='bf'?'font-weight:bold; background:#e0e0e0;':''} cursor:pointer; padding:2px;">Gordura corporal: ${dayData.bf||0}%</p>
-                    <p class="clickable-hist" data-sub="imc" style="${histSubMode==='imc'?'font-weight:bold; background:#e0e0e0;':''} cursor:pointer; padding:2px;">IMC: ${dayData.imc||0}</p>
+                    <p class="clickable-hist" data-sub="weight" style="${histSubMode==='weight'?'font-weight:bold; background:#e0e0e0;':''} cursor:pointer;">Peso: ${dayData.weight||0} Kgs</p>
+                    <p class="clickable-hist" data-sub="bf" style="${histSubMode==='bf'?'font-weight:bold; background:#e0e0e0;':''} cursor:pointer;">Gordura (%): ${dayData.bf||0}%</p>
+                    <p class="clickable-hist" data-sub="imc" style="${histSubMode==='imc'?'font-weight:bold; background:#e0e0e0;':''} cursor:pointer;">IMC: ${dayData.imc||0}</p>
                 </div>
-                <div class="col-center"></div>
-                <div class="col-right">
-                    <p class="clickable-hist" data-sub="muscle" style="${histSubMode==='muscle'?'font-weight:bold; background:#e0e0e0;':''} cursor:pointer; padding:2px;">Músculo Esquelét.: ${dayData.muscle||0} Kgs</p>
-                    <p class="clickable-hist" data-sub="massGorda" style="${histSubMode==='massGorda'?'font-weight:bold; background:#e0e0e0;':''} cursor:pointer; padding:2px;">Massa gorda: ${dayData.massGorda||0} Kgs</p>
-                    <p class="clickable-hist" data-sub="water" style="${histSubMode==='water'?'font-weight:bold; background:#e0e0e0;':''} cursor:pointer; padding:2px;">Água corporal: ${dayData.water||0} Kgs</p>
+                <div class="col-right" style="text-align: right;">
+                    <p class="clickable-hist" data-sub="muscle" style="${histSubMode==='muscle'?'font-weight:bold; background:#e0e0e0;':''} cursor:pointer;">Músculo Esq.: ${dayData.muscle||0} Kgs</p>
+                    <p class="clickable-hist" data-sub="massGorda" style="${histSubMode==='massGorda'?'font-weight:bold; background:#e0e0e0;':''} cursor:pointer;">Massa gorda: ${dayData.massGorda||0} Kgs</p>
+                    <p class="clickable-hist" data-sub="water" style="${histSubMode==='water'?'font-weight:bold; background:#e0e0e0;':''} cursor:pointer;">Água corporal: ${dayData.water||0} Kgs</p>
                 </div>
             `;
         }
-        
-        // Escutador de eventos para quando você clica em "Proteínas", "Peso", etc.
-        container.querySelectorAll('.clickable-hist').forEach(el => {
-            el.addEventListener('click', (e) => {
-                histSubMode = e.currentTarget.getAttribute('data-sub');
-                loadHistoryPage(); // Recarrega o gráfico com a nova grandeza Y
+        container.querySelectorAll('.clickable-hist').forEach(el => el.addEventListener('click', (e) => { histSubMode = e.currentTarget.getAttribute('data-sub'); loadHistoryPage(); }));
+    }
+
+    // =========================================================
+    // LÓGICA DA PÁGINA 5 (ALIMENTOS, PRATOS E REFEIÇÕES)
+    // =========================================================
+    let currentFoodTab = 'alimentos';
+
+    // Gerencia o clique nas abas do submenu da página 5
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+            currentFoodTab = e.currentTarget.getAttribute('data-tab');
+            loadFoodPage();
+        });
+    });
+
+    async function loadFoodPage() {
+        const container = document.getElementById('tab-alimentos'); // Usaremos este container genérico
+        container.innerHTML = ''; 
+        const inf2 = await getAllData('Inf_2') || [];
+
+        if (currentFoodTab === 'alimentos') {
+            const foods = inf2.filter(i => i.type === 'food').sort((a,b) => a.name.localeCompare(b.name));
+            let html = `<table class="macro-table"><thead><tr><th>NOME</th><th>QTDE(g/ml)</th><th>PROT</th><th>CARB</th><th>GORD</th><th>Kcal</th></tr></thead><tbody>`;
+            foods.forEach(f => {
+                html += `<tr><td>${f.name}</td><td>${f.amount}</td><td>${f.prot}</td><td>${f.carb}</td><td>${f.fat}</td><td>${f.kcal}</td></tr>`;
             });
+            html += `</tbody></table>
+                     <div style="position: fixed; bottom: 80px; right: 20px; display: flex; flex-direction: column; gap: 10px;">
+                        <button class="fab-btn" id="edit-food-btn" style="position: static;"><i class="fa-solid fa-pencil"></i></button>
+                        <button class="fab-btn" id="add-food-btn" style="position: static;"><i class="fa-solid fa-plus"></i></button>
+                     </div>`;
+            container.innerHTML = html;
+
+            document.getElementById('add-food-btn').addEventListener('click', () => showFoodModal(null));
+            document.getElementById('edit-food-btn').addEventListener('click', () => {
+                let nameToEdit = prompt("Digite o nome exato do alimento que deseja editar:");
+                let food = foods.find(f => f.name.toLowerCase() === nameToEdit?.toLowerCase());
+                if(food) showFoodModal(food); else if(nameToEdit) alert("Alimento não encontrado!");
+            });
+
+        } else if (currentFoodTab === 'pratos') {
+            const plates = inf2.filter(i => i.type === 'plate').sort((a,b) => a.name.localeCompare(b.name));
+            let html = `<table class="macro-table"><thead><tr><th>NOME</th><th>QTDE</th><th>PROT</th><th>CARB</th><th>GORD</th><th>Kcal</th></tr></thead><tbody>`;
+            plates.forEach(p => {
+                html += `<tr style="background:#eee; cursor:pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'table-row' : 'none'">
+                            <td><strong>${p.name}</strong></td><td>${Math.round(p.amount)}</td><td>${Math.round(p.prot)}</td><td>${Math.round(p.carb)}</td><td>${Math.round(p.fat)}</td><td>${Math.round(p.kcal)}</td>
+                         </tr>
+                         <tr style="display:none;"><td colspan="6" style="padding:0;">
+                            <table style="width:100%; font-size:12px; background:#fff;">
+                                ${p.foods.map(f => `<tr><td>${f.name}</td><td>${Math.round(f.amount)}</td><td>${Math.round(f.prot)}</td><td>${Math.round(f.carb)}</td><td>${Math.round(f.fat)}</td><td>${Math.round(f.kcal)}</td></tr>`).join('')}
+                            </table>
+                         </td></tr>`;
+            });
+            html += `</tbody></table>
+                     <div style="position: fixed; bottom: 80px; right: 20px; display: flex; flex-direction: column; gap: 10px;">
+                        <button class="fab-btn" id="edit-plate-btn" style="position: static;"><i class="fa-solid fa-pencil"></i></button>
+                        <button class="fab-btn" id="add-plate-btn" style="position: static;"><i class="fa-solid fa-plus"></i></button>
+                     </div>`;
+            container.innerHTML = html;
+
+            document.getElementById('add-plate-btn').addEventListener('click', () => showPlateModal(null));
+            document.getElementById('edit-plate-btn').addEventListener('click', () => {
+                let nameToEdit = prompt("Digite o nome exato do prato que deseja editar:");
+                let plate = plates.find(p => p.name.toLowerCase() === nameToEdit?.toLowerCase());
+                if(plate) showPlateModal(plate); else if(nameToEdit) alert("Prato não encontrado!");
+            });
+
+        } else if (currentFoodTab === 'refeicoes') {
+            const meals = inf2.filter(i => i.type === 'mealName');
+            let html = `<p style="text-align:center; margin-bottom:10px;">Como você quer organizar suas refeições ao longo do dia?</p>
+                        <table class="macro-table" id="meal-config-table">
+                            <thead><tr><th>Nome da Refeição</th><th>Horário</th><th>Definir Lembrete</th></tr></thead>
+                            <tbody>`;
+            
+            if(meals.length === 0) meals.push({name:'', time:'', reminder:0}); // linha vazia inicial
+            meals.forEach(m => {
+                html += `<tr>
+                            <td><input type="text" class="m-name" value="${m.name}" style="width:100%;"></td>
+                            <td><input type="time" class="m-time" value="${m.time}" style="width:100%;"></td>
+                            <td><select class="m-rem"><option value="0" ${m.reminder==0?'selected':''}>Sem lembrete</option><option value="5" ${m.reminder==5?'selected':''}>5 min antes</option><option value="10" ${m.reminder==10?'selected':''}>10 min antes</option><option value="15" ${m.reminder==15?'selected':''}>15 min antes</option></select></td>
+                         </tr>`;
+            });
+            html += `</tbody></table>
+                     <div style="display:flex; justify-content:center; gap:20px; margin-top:15px;">
+                        <button id="add-meal-row-btn" class="icon-btn"><i class="fa-solid fa-plus"></i></button>
+                        <button id="save-meal-config-btn" class="action-btn" style="width:auto; margin:0;"><i class="fa-solid fa-check"></i></button>
+                     </div>`;
+            container.innerHTML = html;
+
+            document.getElementById('add-meal-row-btn').addEventListener('click', () => {
+                const tbody = document.getElementById('meal-config-table').querySelector('tbody');
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td><input type="text" class="m-name" style="width:100%;"></td><td><input type="time" class="m-time" style="width:100%;"></td><td><select class="m-rem"><option value="0">Sem lembrete</option><option value="5">5 min antes</option><option value="10">10 min antes</option><option value="15">15 min antes</option></select></td>`;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('save-meal-config-btn').addEventListener('click', async () => {
+                if(Notification.permission !== "granted") Notification.requestPermission();
+                const rows = document.querySelectorAll('#meal-config-table tbody tr');
+                
+                // Apaga as configurações antigas
+                const dbTransact = db.transaction(['Inf_2'], 'readwrite');
+                const store = dbTransact.objectStore('Inf_2');
+                let allItemsReq = store.getAll();
+                allItemsReq.onsuccess = () => {
+                    allItemsReq.result.forEach(item => { if(item.type === 'mealName') store.delete(item.id); });
+                };
+                
+                // Salva as novas
+                setTimeout(async () => {
+                    for(let tr of rows) {
+                        const n = tr.querySelector('.m-name').value.trim();
+                        if(n) await saveData('Inf_2', { type: 'mealName', name: n, time: tr.querySelector('.m-time').value, reminder: parseInt(tr.querySelector('.m-rem').value) });
+                    }
+                    alert("Configuração de refeições e lembretes salva!");
+                    loadFoodPage();
+                }, 100);
+            });
+        }
+    }
+
+    // Modal Dinâmico para Cadastro/Edição de Alimentos
+    function showFoodModal(foodData) {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; display:flex; justify-content:center; align-items:center;";
+        overlay.innerHTML = `
+            <div style="background:#fff; padding:20px; border: 2px solid #000; width:95%;">
+                <h3 style="text-align:center; margin-bottom:15px;">${foodData ? 'EDITAR ALIMENTO' : 'REGISTRAR NOVO ALIMENTO'}</h3>
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <label>Nome: <input type="text" id="modal-f-name" value="${foodData ? foodData.name : ''}" style="width:100%;"></label>
+                    <div style="display:flex; gap:5px;">
+                        <label>Qtde: <input type="number" id="modal-f-qty" value="${foodData ? foodData.amount : ''}" style="width:100%;"></label>
+                        <label>Prot: <input type="number" id="modal-f-prot" value="${foodData ? foodData.prot : ''}" style="width:100%;"></label>
+                        <label>Carb: <input type="number" id="modal-f-carb" value="${foodData ? foodData.carb : ''}" style="width:100%;"></label>
+                        <label>Gord: <input type="number" id="modal-f-fat" value="${foodData ? foodData.fat : ''}" style="width:100%;"></label>
+                        <label>Kcal: <input type="number" id="modal-f-kcal" value="${foodData ? foodData.kcal : ''}" style="width:100%;"></label>
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-top:20px;">
+                    <button id="modal-f-cancel" style="padding:10px;">Cancelar</button>
+                    <button id="modal-f-save" class="action-btn" style="margin:0; width:60px;"><i class="fa-solid fa-check"></i></button>
+                </div>
+            </div>`;
+        document.body.appendChild(overlay);
+
+        document.getElementById('modal-f-cancel').addEventListener('click', () => document.body.removeChild(overlay));
+        document.getElementById('modal-f-save').addEventListener('click', async () => {
+            const dataToSave = {
+                type: 'food',
+                name: document.getElementById('modal-f-name').value.trim(),
+                amount: parseFloat(document.getElementById('modal-f-qty').value),
+                prot: parseFloat(document.getElementById('modal-f-prot').value),
+                carb: parseFloat(document.getElementById('modal-f-carb').value),
+                fat: parseFloat(document.getElementById('modal-f-fat').value),
+                kcal: parseFloat(document.getElementById('modal-f-kcal').value)
+            };
+            if(foodData) dataToSave.id = foodData.id;
+            
+            if(dataToSave.name && !isNaN(dataToSave.amount)) {
+                await saveData('Inf_2', dataToSave);
+                document.body.removeChild(overlay);
+                loadFoodPage();
+            } else alert('Preencha pelo menos Nome e Quantidade com dados válidos.');
         });
     }
 
-    // Carregar Perfil (Dados)
+    // Modal Dinâmico para Cadastro/Edição de Pratos
+    async function showPlateModal(plateData) {
+        const inf2 = await getAllData('Inf_2') || [];
+        availableFoods = inf2.filter(item => item.type === 'food'); // Pratos só levam alimentos
+
+        let datalist = document.getElementById('plate-food-options');
+        if (!datalist) { datalist = document.createElement('datalist'); datalist.id = 'plate-food-options'; document.body.appendChild(datalist); }
+        datalist.innerHTML = '';
+        availableFoods.forEach(f => { const opt = document.createElement('option'); opt.value = f.name; datalist.appendChild(opt); });
+
+        const overlay = document.createElement('div');
+        overlay.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; display:flex; justify-content:center; align-items:center;";
+        
+        let initialRowsHTML = '';
+        if(plateData && plateData.foods) {
+            plateData.foods.forEach(f => {
+                initialRowsHTML += `<tr><td><input type="text" list="plate-food-options" class="p-f-name" value="${f.name}" style="width:100%;"></td>
+                <td><input type="number" class="p-f-qty" value="${f.amount}" style="width:50px;"></td><td class="p-f-prot">${f.prot}</td><td class="p-f-carb">${f.carb}</td><td class="p-f-fat">${f.fat}</td><td class="p-f-kcal">${f.kcal}</td></tr>`;
+            });
+        }
+
+        overlay.innerHTML = `
+            <div style="background:#fff; padding:15px; border: 2px solid #000; width:95%; max-height:90vh; overflow-y:auto;">
+                <h3 style="text-align:center; margin-bottom:10px;">${plateData ? 'EDITAR PRATO' : 'REGISTRAR NOVO PRATO'}</h3>
+                <label>Nome do Prato: <input type="text" id="modal-p-name" value="${plateData ? plateData.name : ''}" style="width:100%; margin-bottom:10px;"></label>
+                <table class="macro-table" id="plate-foods-table" style="font-size:12px;">
+                    <thead><tr><th>ALIMENTO</th><th>QTDE</th><th>PROT</th><th>CARB</th><th>GORD</th><th>Kcal</th></tr></thead>
+                    <tbody>${initialRowsHTML}</tbody>
+                </table>
+                <div style="text-align:center; margin-top:5px;"><button id="add-p-row-btn" class="icon-btn"><i class="fa-solid fa-plus"></i></button></div>
+                <div style="display:flex; justify-content:space-between; margin-top:15px;">
+                    <button id="modal-p-cancel" style="padding:10px;">Cancelar</button>
+                    <button id="modal-p-save" class="action-btn" style="margin:0; width:60px;"><i class="fa-solid fa-check"></i></button>
+                </div>
+            </div>`;
+        document.body.appendChild(overlay);
+
+        const addRowToPlate = () => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td><input type="text" list="plate-food-options" class="p-f-name" style="width:100%;"></td><td><input type="number" class="p-f-qty" style="width:50px;"></td><td class="p-f-prot">0</td><td class="p-f-carb">0</td><td class="p-f-fat">0</td><td class="p-f-kcal">0</td>`;
+            tr.dataset.baseAmount = 0; tr.dataset.baseProt = 0; tr.dataset.baseCarb = 0; tr.dataset.baseFat = 0; tr.dataset.baseKcal = 0;
+            
+            tr.querySelector('.p-f-name').addEventListener('input', (e) => {
+                const food = availableFoods.find(f => f.name.toLowerCase() === e.target.value.toLowerCase());
+                if (food) {
+                    tr.querySelector('.p-f-qty').value = Math.round(food.amount);
+                    tr.dataset.baseAmount = food.amount; tr.dataset.baseProt = food.prot; tr.dataset.baseCarb = food.carb; tr.dataset.baseFat = food.fat; tr.dataset.baseKcal = food.kcal;
+                    updatePlateRowVisuals(tr, 1);
+                }
+            });
+            tr.querySelector('.p-f-qty').addEventListener('input', (e) => {
+                const baseAmount = parseFloat(tr.dataset.baseAmount); const newAmount = parseFloat(e.target.value);
+                if (baseAmount > 0 && !isNaN(newAmount)) updatePlateRowVisuals(tr, newAmount / baseAmount);
+            });
+            document.getElementById('plate-foods-table').querySelector('tbody').appendChild(tr);
+        };
+
+        function updatePlateRowVisuals(tr, ratio) {
+            tr.querySelector('.p-f-prot').innerText = Math.round(parseFloat(tr.dataset.baseProt) * ratio);
+            tr.querySelector('.p-f-carb').innerText = Math.round(parseFloat(tr.dataset.baseCarb) * ratio);
+            tr.querySelector('.p-f-fat').innerText = Math.round(parseFloat(tr.dataset.baseFat) * ratio);
+            tr.querySelector('.p-f-kcal').innerText = Math.round(parseFloat(tr.dataset.baseKcal) * ratio);
+        }
+
+        if(!plateData || !plateData.foods) addRowToPlate(); // Garante que tenha 1 linha se for novo
+        else {
+            // Re-anexa dados base para regras de três nas linhas editadas
+            overlay.querySelectorAll('tbody tr').forEach(tr => {
+                const fName = tr.querySelector('.p-f-name').value;
+                const dbFood = availableFoods.find(f => f.name === fName);
+                if(dbFood) {
+                    tr.dataset.baseAmount = dbFood.amount; tr.dataset.baseProt = dbFood.prot; tr.dataset.baseCarb = dbFood.carb; tr.dataset.baseFat = dbFood.fat; tr.dataset.baseKcal = dbFood.kcal;
+                    tr.querySelector('.p-f-qty').addEventListener('input', (e) => { updatePlateRowVisuals(tr, parseFloat(e.target.value) / parseFloat(tr.dataset.baseAmount)); });
+                }
+            });
+        }
+
+        document.getElementById('add-p-row-btn').addEventListener('click', addRowToPlate);
+        document.getElementById('modal-p-cancel').addEventListener('click', () => document.body.removeChild(overlay));
+        
+        document.getElementById('modal-p-save').addEventListener('click', async () => {
+            const pName = document.getElementById('modal-p-name').value.trim();
+            if(!pName) return alert("O prato precisa de um nome.");
+
+            let sumAmount=0, sumProt=0, sumCarb=0, sumFat=0, sumKcal=0;
+            let foodsArray = [];
+            const rows = document.getElementById('plate-foods-table').querySelectorAll('tbody tr');
+            
+            rows.forEach(tr => {
+                const n = tr.querySelector('.p-f-name').value.trim();
+                const q = parseFloat(tr.querySelector('.p-f-qty').value);
+                if(n && q > 0) {
+                    const p = parseFloat(tr.querySelector('.p-f-prot').innerText);
+                    const c = parseFloat(tr.querySelector('.p-f-carb').innerText);
+                    const f = parseFloat(tr.querySelector('.p-f-fat').innerText);
+                    const k = parseFloat(tr.querySelector('.p-f-kcal').innerText);
+                    foodsArray.push({name:n, amount:q, prot:p, carb:c, fat:f, kcal:k});
+                    sumAmount += q; sumProt += p; sumCarb += c; sumFat += f; sumKcal += k;
+                }
+            });
+
+            if(foodsArray.length === 0) return alert("Adicione pelo menos um alimento válido ao prato.");
+
+            const dataToSave = { type: 'plate', name: pName, amount: sumAmount, prot: sumProt, carb: sumCarb, fat: sumFat, kcal: sumKcal, foods: foodsArray };
+            if(plateData) dataToSave.id = plateData.id;
+
+            await saveData('Inf_2', dataToSave);
+            document.body.removeChild(overlay);
+            loadFoodPage();
+        });
+    }
+
+    // =========================================================
+    // LÓGICA DA PÁGINA 6 (PERFIL / DADOS)
+    // =========================================================
     async function loadProfilePage() {
         userData = await getData('Inf_1', 1);
         let todayData = await getData('Inf_3', today);
