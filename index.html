@@ -1,1 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DietApp</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
 
+    <div id="page-first-use" class="page screen-active">
+        <h1 class="header-title">VAMOS COMEÇAR A RASTREAR SUAS REFEIÇÕES?</h1>
+        <p class="warning-text">Atenção! Com exceção do peso e da atividade física, nenhum dos dados poderá ser modificado posteriormente!</p>
+        
+        <div class="form-block">
+            <h3>INSIRA SEUS DADOS</h3>
+            <label>Nome: <input type="text" id="init-name"></label>
+            <label>Sexo: 
+                <select id="init-sex">
+                    <option value="M">Masculino</option>
+                    <option value="F">Feminino</option>
+                </select>
+            </label>
+            <label>Data de nascimento: <input type="date" id="init-birth"></label>
+            <label>Altura (cm): <input type="number" id="init-height"></label>
+            <label>Peso (kg): <input type="number" id="init-weight" step="0.1"></label>
+            <label>Qual o seu nível de atividade física?
+                <select id="init-activity">
+                    <option value="1.2">Sedentário: Trabalho de escritório, pouco ou nenhum exercício</option>
+                    <option value="1.375">Levemente Ativo: Exercício leve ou caminhadas de 1 a 3 dias por semana</option>
+                    <option value="1.55">Moderadamente Ativo: Exercício moderado ou esportes de 3 a 5 dias por semana</option>
+                    <option value="1.725">Altamente Ativo: Exercício intenso ou esportes pesados de 6 a 7 dias por semana</option>
+                    <option value="1.9">Extremamente Ativo: Trabalho físico muito pesado ou treinos intensos duas vezes ao dia</option>
+                </select>
+            </label>
+            <button id="btn-save-initial" class="primary-btn">Salvar Dados</button>
+        </div>
+    </div>
+
+    <div id="page-home" class="page">
+        <h2 id="home-greeting" class="cursive-text">Olá, Usuário!</h2>
+        <div class="summary-block">
+            <h3>RESUMO DO DIA</h3>
+            <div class="progress-container">
+                <div class="progress-bar-bg"><div id="bar-cal" class="progress-fill red-fill"></div><span class="bar-text left" id="text-cal-val">0/0 kcal</span><span class="bar-text right">CALORIAS</span></div>
+                <div class="progress-bar-bg"><div id="bar-prot" class="progress-fill black-fill"></div><span class="bar-text left" id="text-prot-val">0/0 g</span><span class="bar-text right">PROTEÍNAS</span></div>
+                <div class="progress-bar-bg"><div id="bar-carb" class="progress-fill blue-fill"></div><span class="bar-text left" id="text-carb-val">0/0 g</span><span class="bar-text right">CARBOIDRATOS</span></div>
+                <div class="progress-bar-bg"><div id="bar-fat" class="progress-fill yellow-fill"></div><span class="bar-text left" id="text-fat-val">0/0 g</span><span class="bar-text right">GORDURAS</span></div>
+            </div>
+        </div>
+        <div class="meals-list-block">
+            <h3>REFEIÇÕES DO DIA</h3>
+            <div id="home-meals-container"></div>
+        </div>
+    </div>
+
+    <div id="page-goals" class="page">
+        <h2 class="top-left-title">METAS DE CONSUMO DIÁRIO</h2>
+        <div id="goals-question">
+            <p class="center-text">Você já sabe quanto precisa ingerir?</p>
+            <div class="flex-row">
+                <button id="btn-goals-yes" class="primary-btn">SIM (inserir manualmente)</button>
+                <button id="btn-goals-no" class="primary-btn">NÃO (vamos calcular!)</button>
+            </div>
+        </div>
+        
+        <div id="goals-calculator" style="display:none;">
+            <p>Usuário, qual o seu objetivo?</p>
+            <button class="calc-btn" data-goal="bulking">Quero ganhar massa muscular (bulking)</button>
+            <button class="calc-btn" data-goal="cutting">Quero perder gordura (cutting)</button>
+            <button class="calc-btn" data-goal="maintenance">Quero preservar meu peso (manutenção)</button>
+        </div>
+
+        <div id="goals-manual" style="display:none;">
+            <p><strong>GASTO CALÓRICO DIÁRIO:</strong> <span id="display-tdee">0</span> kcal (Equação Harris-Benedict)</p>
+            <table class="goals-table">
+                <tr><td>Calorias:</td><td><input type="number" id="goal-kcal"></td><td></td></tr>
+                <tr><td>Proteínas:</td><td><input type="number" id="goal-prot"></td><td id="goal-prot-kg">0 g/kg</td></tr>
+                <tr><td>Gorduras:</td><td><input type="number" id="goal-fat"></td><td id="goal-fat-kg">0 g/kg</td></tr>
+                <tr><td>Carboidratos:</td><td><input type="number" id="goal-carb"></td><td id="goal-carb-kg">0 g/kg</td></tr>
+            </table>
+            <button id="save-goals-btn" class="action-btn"><i class="fa-solid fa-check"></i></button>
+        </div>
+    </div>
+
+    <div id="page-add" class="page">
+        <h2 class="center-title">REGISTRAR NOVA REFEIÇÃO</h2>
+        <div class="add-meal-controls">
+            <label>Nome: <select id="add-meal-name"></select></label>
+            <label>Horário: <input type="time" id="add-meal-time"></label>
+        </div>
+        <table class="macro-table" id="add-meal-table">
+            <thead><tr><th>ALIMENTO</th><th>QTDE</th><th>PROT</th><th>CARB</th><th>GORD</th><th>KCAL</th></tr></thead>
+            <tbody id="add-meal-tbody">
+                </tbody>
+        </table>
+        <button id="add-row-btn" class="icon-btn"><i class="fa-solid fa-plus"></i></button>
+        <button id="save-meal-btn" class="action-btn"><i class="fa-solid fa-check"></i></button>
+    </div>
+
+    <div id="page-history" class="page">
+        <h2 class="center-title">HISTÓRICO <span id="history-year" class="right-text">2026</span></h2>
+        <div class="history-icons">
+            <button class="icon-btn hist-btn" data-type="macros"><i class="fa-solid fa-bullseye"></i></button>
+            <button class="icon-btn hist-btn" data-type="body"><i class="fa-solid fa-scale-balanced"></i></button>
+            <button class="icon-btn right-align"><i class="fa-regular fa-calendar"></i></button>
+        </div>
+        <div class="chart-container">
+            <canvas id="historyChart"></canvas>
+        </div>
+        <div id="history-data-macros" class="history-data-grid">
+            <div class="col-left">
+                <p>Meta na época: <span id="hist-meta-kcal"></span></p>
+                <p>GCD: <span id="hist-gcd"></span></p>
+                <p>Calorias: <span id="hist-cal"></span></p>
+            </div>
+            <div class="col-center">
+                <p>Proteínas: <span id="hist-prot"></span></p>
+                <p>Carboidratos: <span id="hist-carb"></span></p>
+                <p>Gorduras: <span id="hist-fat"></span></p>
+            </div>
+            <div class="col-right">
+                <p>Meta prot.: <span id="hist-meta-prot"></span></p>
+                <p>Meta carb.: <span id="hist-meta-carb"></span></p>
+                <p>Meta gord.: <span id="hist-meta-fat"></span></p>
+                <button class="small-btn">Alimentos</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-food" class="page">
+        <h2 class="center-title">ALIMENTOS E REFEIÇÕES</h2>
+        <div class="submenu-tabs">
+            <button class="tab-btn active" data-tab="alimentos">Alimentos</button>
+            <button class="tab-btn" data-tab="pratos">Pratos</button>
+            <button class="tab-btn" data-tab="refeicoes">Refeições</button>
+        </div>
+        <div id="tab-alimentos" class="tab-content active">
+            </div>
+    </div>
+
+    <div id="page-profile" class="page">
+        <h2 class="center-title">DADOS PESSOAIS</h2>
+        <span id="profile-date" class="top-right-text"></span>
+        <div class="profile-info">
+            <p>Nome: <span id="prof-name"></span></p>
+            <p>Sexo: <span id="prof-sex"></span></p>
+            <p>Idade: <span id="prof-age"></span></p>
+            <p>Altura: <span id="prof-height"></span> cm</p>
+            <p>Peso: <span id="prof-weight"></span> kg</p>
+            <p>Nível de atividade física: <span id="prof-activity"></span></p>
+        </div>
+        <button id="new-measurement-btn" class="fab-btn"><i class="fa-solid fa-plus"></i></button>
+    </div>
+
+    <nav id="bottom-nav">
+        <button class="nav-btn active" data-target="page-home"><i class="fa-solid fa-house"></i></button>
+        <button class="nav-btn" data-target="page-goals"><i class="fa-solid fa-bullseye"></i></button>
+        <button class="nav-btn" data-target="page-add"><i class="fa-solid fa-plus"></i></button>
+        <button class="nav-btn" data-target="page-history"><i class="fa-solid fa-arrow-trend-up"></i></button>
+        <button class="nav-btn" data-target="page-food"><i class="fa-solid fa-bowl-food"></i></button>
+        <button class="nav-btn" data-target="page-profile"><i class="fa-solid fa-user"></i></button>
+    </nav>
+
+    <script src="db.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
