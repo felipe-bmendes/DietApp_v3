@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    // Registra PWA Service Worker
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW falhou:', err));
     }
@@ -8,28 +7,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     const today = new Date().toISOString().split('T')[0];
     let availableFoods = [];
-
-    // Variáveis Globais Histórico
     let historyChartInstance = null;
     let histMode = 'macros';
     let histSubMode = 'kcal';
     let histRefDate = today;
-
-    // Variável para controle de Notificações diárias
     let notifiedMeals = { date: today };
 
-    // Verifica permissão de notificação logo de início
     if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
         Notification.requestPermission();
     }
 
-    // Loop que checa as notificações a cada 1 minuto (60000 ms)
     setInterval(async () => {
         const now = new Date();
         const currentStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
         const todayStr = now.toISOString().split('T')[0];
 
-        // Reseta o controle no dia seguinte para notificar de novo
         if(notifiedMeals.date !== todayStr) notifiedMeals = { date: todayStr };
 
         let allInf2 = await getAllData('Inf_2') || [];
@@ -40,7 +32,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 let mealTimeDate = new Date();
                 let [h, m] = meal.time.split(':');
                 mealTimeDate.setHours(parseInt(h), parseInt(m), 0, 0);
-                // Subtrai os minutos do lembrete
                 mealTimeDate.setMinutes(mealTimeDate.getMinutes() - meal.reminder);
                 
                 let remStr = `${String(mealTimeDate.getHours()).padStart(2, '0')}:${String(mealTimeDate.getMinutes()).padStart(2, '0')}`;
@@ -57,7 +48,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }, 60000);
 
-    // Verifica se Inf_1 existe
     let userData = await getData('Inf_1', 1);
     if (!userData) {
         document.getElementById('page-first-use').classList.add('screen-active');
@@ -68,7 +58,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadHomePage();
     }
 
-    // Navegação Inferior
     document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -87,7 +76,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    // Salvar Dados da Primeira Tela
     document.getElementById('btn-save-initial').addEventListener('click', async () => {
         const name = document.getElementById('init-name').value;
         const sex = document.getElementById('init-sex').value;
@@ -96,7 +84,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const weight = parseFloat(document.getElementById('init-weight').value);
         const activity = parseFloat(document.getElementById('init-activity').value);
 
-        if (!name || !sex || !birth || !height || !weight || !activity) return alert("Preencha tudo!");
+        if (!name || !sex || !birth || !height || !weight || !activity) return alert("Preencha todos os campos.");
 
         await saveData('Inf_1', { id: 1, name, sex, birth, height });
         
@@ -297,7 +285,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         todayData.target_fat = parseFloat(document.getElementById('goal-fat').value);
         todayData.target_carb = parseFloat(document.getElementById('goal-carb').value);
         await saveData('Inf_3', todayData);
-        alert('Metas salvas para hoje!');
+        alert('Metas registradas com sucesso.');
         loadHomePage(); 
     });
 
@@ -403,8 +391,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
-        if (hasError) return alert('Insira quantidades válidas maiores que zero.');
-        if (foodsToSave.length === 0) return alert('Adicione pelo menos um alimento na refeição.');
+        if (hasError) return alert('Por favor, informe quantidades maiores que zero para os alimentos.');
+        if (foodsToSave.length === 0) return alert('Adicione ao menos um alimento.');
 
         let todayData = await getData('Inf_3', today) || { date: today, meals: [] };
         if (!todayData.meals) todayData.meals = [];
@@ -549,7 +537,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // =========================================================
     let currentFoodTab = 'alimentos';
 
-    // Gerencia o clique nas abas do submenu da página 5
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -560,7 +547,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     async function loadFoodPage() {
-        const container = document.getElementById('tab-alimentos'); // Usaremos este container genérico
+        const container = document.getElementById('tab-alimentos');
         container.innerHTML = ''; 
         const inf2 = await getAllData('Inf_2') || [];
 
@@ -579,9 +566,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             document.getElementById('add-food-btn').addEventListener('click', () => showFoodModal(null));
             document.getElementById('edit-food-btn').addEventListener('click', () => {
-                let nameToEdit = prompt("Digite o nome exato do alimento que deseja editar:");
+                let nameToEdit = prompt("Digite o nome exato do alimento para edição:");
                 let food = foods.find(f => f.name.toLowerCase() === nameToEdit?.toLowerCase());
-                if(food) showFoodModal(food); else if(nameToEdit) alert("Alimento não encontrado!");
+                if(food) showFoodModal(food); else if(nameToEdit) alert("Alimento não localizado.");
             });
 
         } else if (currentFoodTab === 'pratos') {
@@ -606,9 +593,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             document.getElementById('add-plate-btn').addEventListener('click', () => showPlateModal(null));
             document.getElementById('edit-plate-btn').addEventListener('click', () => {
-                let nameToEdit = prompt("Digite o nome exato do prato que deseja editar:");
+                let nameToEdit = prompt("Digite o nome exato do prato para edição:");
                 let plate = plates.find(p => p.name.toLowerCase() === nameToEdit?.toLowerCase());
-                if(plate) showPlateModal(plate); else if(nameToEdit) alert("Prato não encontrado!");
+                if(plate) showPlateModal(plate); else if(nameToEdit) alert("Prato não localizado.");
             });
 
         } else if (currentFoodTab === 'refeicoes') {
@@ -618,7 +605,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             <thead><tr><th>Nome da Refeição</th><th>Horário</th><th>Definir Lembrete</th></tr></thead>
                             <tbody>`;
             
-            if(meals.length === 0) meals.push({name:'', time:'', reminder:0}); // linha vazia inicial
+            if(meals.length === 0) meals.push({name:'', time:'', reminder:0}); 
             meals.forEach(m => {
                 html += `<tr>
                             <td><input type="text" class="m-name" value="${m.name}" style="width:100%;"></td>
@@ -644,7 +631,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if(Notification.permission !== "granted") Notification.requestPermission();
                 const rows = document.querySelectorAll('#meal-config-table tbody tr');
                 
-                // Apaga as configurações antigas
                 const dbTransact = db.transaction(['Inf_2'], 'readwrite');
                 const store = dbTransact.objectStore('Inf_2');
                 let allItemsReq = store.getAll();
@@ -652,20 +638,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                     allItemsReq.result.forEach(item => { if(item.type === 'mealName') store.delete(item.id); });
                 };
                 
-                // Salva as novas
                 setTimeout(async () => {
                     for(let tr of rows) {
                         const n = tr.querySelector('.m-name').value.trim();
                         if(n) await saveData('Inf_2', { type: 'mealName', name: n, time: tr.querySelector('.m-time').value, reminder: parseInt(tr.querySelector('.m-rem').value) });
                     }
-                    alert("Configuração de refeições e lembretes salva!");
+                    alert("A configuração das refeições e dos lembretes foi salva com sucesso.");
                     loadFoodPage();
                 }, 100);
             });
         }
     }
 
-    // Modal Dinâmico para Cadastro/Edição de Alimentos
     function showFoodModal(foodData) {
         const overlay = document.createElement('div');
         overlay.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; display:flex; justify-content:center; align-items:center;";
@@ -706,14 +690,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 await saveData('Inf_2', dataToSave);
                 document.body.removeChild(overlay);
                 loadFoodPage();
-            } else alert('Preencha pelo menos Nome e Quantidade com dados válidos.');
+            } else alert('É necessário preencher o nome e a quantidade do alimento com dados válidos.');
         });
     }
 
-    // Modal Dinâmico para Cadastro/Edição de Pratos
     async function showPlateModal(plateData) {
         const inf2 = await getAllData('Inf_2') || [];
-        availableFoods = inf2.filter(item => item.type === 'food'); // Pratos só levam alimentos
+        availableFoods = inf2.filter(item => item.type === 'food'); 
 
         let datalist = document.getElementById('plate-food-options');
         if (!datalist) { datalist = document.createElement('datalist'); datalist.id = 'plate-food-options'; document.body.appendChild(datalist); }
@@ -774,9 +757,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             tr.querySelector('.p-f-kcal').innerText = Math.round(parseFloat(tr.dataset.baseKcal) * ratio);
         }
 
-        if(!plateData || !plateData.foods) addRowToPlate(); // Garante que tenha 1 linha se for novo
+        if(!plateData || !plateData.foods) addRowToPlate(); 
         else {
-            // Re-anexa dados base para regras de três nas linhas editadas
             overlay.querySelectorAll('tbody tr').forEach(tr => {
                 const fName = tr.querySelector('.p-f-name').value;
                 const dbFood = availableFoods.find(f => f.name === fName);
@@ -792,7 +774,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         document.getElementById('modal-p-save').addEventListener('click', async () => {
             const pName = document.getElementById('modal-p-name').value.trim();
-            if(!pName) return alert("O prato precisa de um nome.");
+            if(!pName) return alert("O prato requer um nome.");
 
             let sumAmount=0, sumProt=0, sumCarb=0, sumFat=0, sumKcal=0;
             let foodsArray = [];
@@ -811,7 +793,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             });
 
-            if(foodsArray.length === 0) return alert("Adicione pelo menos um alimento válido ao prato.");
+            if(foodsArray.length === 0) return alert("Insira pelo menos um alimento ao prato.");
 
             const dataToSave = { type: 'plate', name: pName, amount: sumAmount, prot: sumProt, carb: sumCarb, fat: sumFat, kcal: sumKcal, foods: foodsArray };
             if(plateData) dataToSave.id = plateData.id;
@@ -823,7 +805,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // =========================================================
-    // LÓGICA DA PÁGINA 6 (PERFIL / DADOS)
+    // LÓGICA DA PÁGINA 6 (PERFIL / DADOS E NOVA MEDIÇÃO)
     // =========================================================
     async function loadProfilePage() {
         userData = await getData('Inf_1', 1);
@@ -840,4 +822,80 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('prof-activity').innerText = todayData.activityLevel || 'N/A';
         }
     }
+
+    document.getElementById('new-measurement-btn').addEventListener('click', async () => {
+        let todayData = await getData('Inf_3', today) || { date: today, meals: [] };
+        const act = todayData.activityLevel || 1.2;
+
+        const overlay = document.createElement('div');
+        overlay.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; display:flex; justify-content:center; align-items:center;";
+        
+        overlay.innerHTML = `
+            <div style="background:#fff; padding:20px; border: 2px solid #000; width:95%; max-height:90vh; overflow-y:auto;">
+                <h3 style="text-align:center; margin-bottom:15px;">NOVA MEDIÇÃO: ${new Date().toLocaleDateString('pt-BR')}</h3>
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <label>Peso (kg): <input type="number" id="mod-m-weight" value="${todayData.weight || ''}" step="0.1" style="width:100%;"></label>
+                    <label>Gordura Corporal (%): <input type="number" id="mod-m-bf" value="${todayData.bf || ''}" style="width:100%;"></label>
+                    <label>IMC: <input type="number" id="mod-m-imc" value="${todayData.imc || ''}" style="width:100%;"></label>
+                    <label>Músculo Esquelético (kg): <input type="number" id="mod-m-muscle" value="${todayData.muscle || ''}" style="width:100%;"></label>
+                    <label>Massa Gorda (kg): <input type="number" id="mod-m-fatmass" value="${todayData.massGorda || ''}" style="width:100%;"></label>
+                    <label>Água Corporal (kg): <input type="number" id="mod-m-water" value="${todayData.water || ''}" style="width:100%;"></label>
+                    <label>Nível de atividade física:
+                        <select id="mod-m-activity" style="width:100%; padding: 5px; margin-top: 5px;">
+                            <option value="1.2" ${act == 1.2 ? 'selected' : ''}>Sedentário</option>
+                            <option value="1.375" ${act == 1.375 ? 'selected' : ''}>Levemente Ativo</option>
+                            <option value="1.55" ${act == 1.55 ? 'selected' : ''}>Moderadamente Ativo</option>
+                            <option value="1.725" ${act == 1.725 ? 'selected' : ''}>Altamente Ativo</option>
+                            <option value="1.9" ${act == 1.9 ? 'selected' : ''}>Extremamente Ativo</option>
+                        </select>
+                    </label>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-top:20px;">
+                    <button id="mod-m-cancel" style="padding:10px;">Cancelar</button>
+                    <button id="mod-m-save" class="action-btn" style="margin:0; width:60px;"><i class="fa-solid fa-check"></i></button>
+                </div>
+            </div>`;
+        document.body.appendChild(overlay);
+
+        document.getElementById('mod-m-cancel').addEventListener('click', () => document.body.removeChild(overlay));
+        
+        document.getElementById('mod-m-save').addEventListener('click', async () => {
+            const w = parseFloat(document.getElementById('mod-m-weight').value);
+            if (!isNaN(w) && w > 0) todayData.weight = w;
+            
+            const bf = parseFloat(document.getElementById('mod-m-bf').value);
+            if (!isNaN(bf)) todayData.bf = bf;
+            
+            const imc = parseFloat(document.getElementById('mod-m-imc').value);
+            if (!isNaN(imc)) todayData.imc = imc;
+            
+            const muscle = parseFloat(document.getElementById('mod-m-muscle').value);
+            if (!isNaN(muscle)) todayData.muscle = muscle;
+            
+            const fatmass = parseFloat(document.getElementById('mod-m-fatmass').value);
+            if (!isNaN(fatmass)) todayData.massGorda = fatmass;
+            
+            const water = parseFloat(document.getElementById('mod-m-water').value);
+            if (!isNaN(water)) todayData.water = water;
+            
+            const activity = parseFloat(document.getElementById('mod-m-activity').value);
+            if (!isNaN(activity)) todayData.activityLevel = activity;
+
+            let usr = await getData('Inf_1', 1);
+            let age = calcAge(usr.birth);
+            let gcd = 0;
+            
+            if (usr.sex === 'M') { 
+                gcd = (66.7 + (13.75 * todayData.weight) + (5 * usr.height) - (6.8 * age)) * todayData.activityLevel; 
+            } else { 
+                gcd = (655.1 + (9.56 * todayData.weight) + (1.85 * usr.height) - (4.68 * age)) * todayData.activityLevel; 
+            }
+            
+            todayData.tdee = Math.round(gcd);
+
+            await saveData('Inf_3', todayData);
+            document.body.removeChild(overlay);
+            loadProfilePage();
+        });
+    });
 });
