@@ -5,6 +5,99 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await initDB();
     
+    // =========================================================
+    // INJEÇÃO AUTOMÁTICA DE ALIMENTOS (Sua Planilha .xlsx)
+    // =========================================================
+    let inf2Check = await getAllData('Inf_2');
+    if (!inf2Check || inf2Check.length === 0) {
+        const PRELOAD_DATA = [
+  { "type": "food", "name": "PEITO DE FRANGO", "amount": 100.0, "prot": 20.0, "fat": 8.0, "carb": 0.0, "kcal": 160.0 },
+  { "type": "food", "name": "CARNE DE BOI COZIDA", "amount": 100.0, "prot": 28.0, "fat": 11.0, "carb": 0.0, "kcal": 207.0 },
+  { "type": "food", "name": "PEITO DE PORCO ASSADA", "amount": 100.0, "prot": 24.0, "fat": 33.0, "carb": 0.0, "kcal": 393.0 },
+  { "type": "food", "name": "BATA DOCE", "amount": 100.0, "prot": 0.6, "fat": 0.1, "carb": 20.0, "kcal": 77.0 },
+  { "type": "food", "name": "INHAME", "amount": 80.0, "prot": 0.6, "fat": 0.1, "carb": 20.0, "kcal": 77.0 },
+  { "type": "food", "name": "QUEIJO MINAS", "amount": 30.0, "prot": 6.0, "fat": 6.0, "carb": 0.0, "kcal": 80.0 },
+  { "type": "food", "name": "QUEIJO MUSSARELA", "amount": 40.0, "prot": 4.0, "fat": 4.0, "carb": 0.0, "kcal": 60.0 },
+  { "type": "food", "name": "ARROZ BRANCO CRU", "amount": 50.0, "prot": 3.7, "fat": 0.5, "carb": 40.0, "kcal": 177.0 },
+  { "type": "food", "name": "ARROZ BRANCO COZIDO", "amount": 300.0, "prot": 6.0, "fat": 0.0, "carb": 84.0, "kcal": 360.0 },
+  { "type": "food", "name": "FEIJÃO CARIOCA", "amount": 40.0, "prot": 9.0, "fat": 0.0, "carb": 24.0, "kcal": 135.0 },
+  { "type": "food", "name": "FEIJÃO PRETO", "amount": 60.0, "prot": 12.0, "fat": 1.3, "carb": 20.0, "kcal": 136.0 },
+  { "type": "food", "name": "FEIJÃO COZIDO", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 22.0, "kcal": 0.0 },
+  { "type": "food", "name": "BISTECA DE PORCO", "amount": 100.0, "prot": 30.0, "fat": 17.0, "carb": 0.0, "kcal": 280.0 },
+  { "type": "food", "name": "CARNE DE HAMBURGUER", "amount": 180.0, "prot": 31.0, "fat": 40.0, "carb": 0.0, "kcal": 482.0 },
+  { "type": "food", "name": "CARNE DE SOL COM CEBOLA", "amount": 100.0, "prot": 19.0, "fat": 18.0, "carb": 2.8, "kcal": 240.0 },
+  { "type": "food", "name": "COXAS DE FRANGO", "amount": 100.0, "prot": 16.0, "fat": 7.2, "carb": 1.3, "kcal": 134.0 },
+  { "type": "food", "name": "OVO", "amount": 1.0, "prot": 6.0, "fat": 5.0, "carb": 1.0, "kcal": 80.0 },
+  { "type": "food", "name": "AZEITE", "amount": 13.0, "prot": 0.0, "fat": 12.0, "carb": 0.0, "kcal": 108.0 },
+  { "type": "food", "name": "LEITE INTEGRAL", "amount": 200.0, "prot": 6.0, "fat": 6.0, "carb": 10.0, "kcal": 118.0 },
+  { "type": "food", "name": "BANANA", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 25.0, "kcal": 100.0 },
+  { "type": "food", "name": "WHEY HIPERCALÓRICO", "amount": 120.0, "prot": 80.0, "fat": 2.5, "carb": 30.0, "kcal": 462.5 },
+  { "type": "food", "name": "(TOP) HIPERCALÓRICO", "amount": 45.0, "prot": 12.0, "fat": 1.25, "carb": 28.5, "kcal": 173.5 },
+  { "type": "food", "name": "WHEY 80%", "amount": 30.0, "prot": 23.0, "fat": 2.0, "carb": 3.4, "kcal": 124.0 },
+  { "type": "food", "name": "TAPIOCA", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 85.0, "kcal": 340.0 },
+  { "type": "food", "name": "MACARRÃO CRU", "amount": 80.0, "prot": 9.8, "fat": 1.0, "carb": 57.0, "kcal": 276.0 },
+  { "type": "food", "name": "MACARRÃO COZIDO", "amount": 100.0, "prot": 4.9, "fat": 0.5, "carb": 28.5, "kcal": 0.0 },
+  { "type": "food", "name": "BRÓCOLIS", "amount": 100.0, "prot": 3.0, "fat": 0.0, "carb": 5.0, "kcal": 20.0 },
+  { "type": "food", "name": "MAÇÃ", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 15.0, "kcal": 60.0 },
+  { "type": "food", "name": "UVA", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 13.0, "kcal": 52.0 },
+  { "type": "food", "name": "PERA", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 13.0, "kcal": 52.0 },
+  { "type": "food", "name": "KIWI", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 13.0, "kcal": 52.0 },
+  { "type": "food", "name": "MAMÃO", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 11.0, "kcal": 44.0 },
+  { "type": "food", "name": "TANGERINA", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 12.0, "kcal": 48.0 },
+  { "type": "food", "name": "MELANCIA", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 8.0, "kcal": 32.0 },
+  { "type": "food", "name": "MORANGO", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 8.0, "kcal": 32.0 },
+  { "type": "food", "name": "MELÃO", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 7.0, "kcal": 28.0 },
+  { "type": "food", "name": "LIMÃO", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 4.0, "kcal": 16.0 },
+  { "type": "food", "name": "LEITE EM PÓ DESNATADO", "amount": 20.0, "prot": 7.0, "fat": 0.0, "carb": 10.0, "kcal": 68.0 },
+  { "type": "food", "name": "LEITE EM PÓ INTEGRAL", "amount": 25.0, "prot": 6.4, "fat": 6.7, "carb": 9.4, "kcal": 124.0 },
+  { "type": "food", "name": "AVEIA", "amount": 100.0, "prot": 14.0, "fat": 6.0, "carb": 67.0, "kcal": 374.0 },
+  { "type": "food", "name": "CENOURA", "amount": 100.0, "prot": 1.0, "fat": 0.0, "carb": 11.0, "kcal": 45.0 },
+  { "type": "food", "name": "IOGURTE NATURAL", "amount": 170.0, "prot": 6.8, "fat": 7.0, "carb": 6.8, "kcal": 117.0 },
+  { "type": "food", "name": "PÃO TORTILHA RAP10", "amount": 33.0, "prot": 2.72, "fat": 2.31, "carb": 14.85, "kcal": 90.75 },
+  { "type": "food", "name": "PÃO INTEGRAL", "amount": 50.0, "prot": 4.6, "fat": 1.8, "carb": 22.0, "kcal": 123.0 },
+  { "type": "food", "name": "PÃO DE FORMA", "amount": 50.0, "prot": 4.5, "fat": 2.2, "carb": 25.0, "kcal": 138.0 },
+  { "type": "food", "name": "PÃO DE HAMBURGUER", "amount": 50.0, "prot": 3.5, "fat": 1.0, "carb": 27.0, "kcal": 131.0 },
+  { "type": "food", "name": "REQUEIJÃO LIGHT", "amount": 100.0, "prot": 11.0, "fat": 16.0, "carb": 1.8, "kcal": 193.0 },
+  { "type": "food", "name": "CREAM CHEESE", "amount": 30.0, "prot": 1.6, "fat": 8.0, "carb": 1.3, "kcal": 84.0 },
+  { "type": "food", "name": "MAIONESE", "amount": 12.0, "prot": 0.1, "fat": 3.7, "carb": 0.8, "kcal": 37.0 },
+  { "type": "food", "name": "KETCHUP", "amount": 12.0, "prot": 0.1, "fat": 0.0, "carb": 2.9, "kcal": 13.0 },
+  { "type": "food", "name": "PASTA DE AMENDOIM", "amount": 20.0, "prot": 4.1, "fat": 9.1, "carb": 5.1, "kcal": 117.0 },
+  { "type": "plate", "name": "TAPIOCA COM QUEIJO E CARNE (GRANDE)", "amount": 205, "prot": 18, "fat": 9.5, "carb": 97.75, "kcal": 554.5, "foods": [
+      { "name": "TAPIOCA", "amount": 115, "prot": 0, "fat": 0, "carb": 97.75, "kcal": 391 },
+      { "name": "CARNE DE BOI COZIDA", "amount": 50, "prot": 14, "fat": 5.5, "carb": 0, "kcal": 103.5 },
+      { "name": "QUEIJO MUSSARELA", "amount": 40, "prot": 4, "fat": 4, "carb": 0, "kcal": 60 }
+    ]
+  },
+  { "type": "plate", "name": "PREPARADO DE PASTA DE FRANGO COM REQUEIJÃO E CENOURA", "amount": 700, "prot": 84, "fat": 56, "carb": 25.2, "kcal": 476, "foods": [
+      { "name": "PEITO DE FRANGO", "amount": 300, "prot": 60, "fat": 24, "carb": 0, "kcal": 0 },
+      { "name": "REQUEIJÃO LIGHT", "amount": 200, "prot": 22, "fat": 32, "carb": 3.2, "kcal": 386 },
+      { "name": "CENOURA", "amount": 200, "prot": 2, "fat": 0, "carb": 22, "kcal": 90 }
+    ]
+  },
+  { "type": "plate", "name": "SANDUÍCHE NATURAL COM PASTA DE FRANGO, REQUEIJÃO E CENOURA", "amount": 110, "prot": 11.7, "fat": 7, "carb": 27.16, "kcal": 178.8, "foods": [
+      { "name": "PREPARADO DE PASTA DE FRANGO COM REQUEIJÃO E CENOURA", "amount": 60, "prot": 7.2, "fat": 4.8, "carb": 2.16, "kcal": 40.8 },
+      { "name": "PÃO DE FORMA", "amount": 50, "prot": 4.5, "fat": 2.2, "carb": 25, "kcal": 138 }
+    ]
+  },
+  { "type": "plate", "name": "HAMBÚRGUER CASEIRO", "amount": 290, "prot": 40.7, "fat": 48.2, "carb": 27.36, "kcal": 651.6, "foods": [
+      { "name": "PÃO DE HAMBURGUER", "amount": 50, "prot": 3.5, "fat": 1, "carb": 27, "kcal": 131 },
+      { "name": "CARNE DE HAMBURGUER", "amount": 180, "prot": 31, "fat": 40, "carb": 0, "kcal": 482 },
+      { "name": "QUEIJO MUSSARELA", "amount": 40, "prot": 4, "fat": 4, "carb": 0, "kcal": 60 },
+      { "name": "REQUEIJÃO LIGHT", "amount": 20, "prot": 2.2, "fat": 3.2, "carb": 0.36, "kcal": 38.6 }
+    ]
+  },
+  { "type": "plate", "name": "OVOS FRITOS COM AZEITE", "amount": 2, "prot": 12, "fat": 22, "carb": 2, "kcal": 268, "foods": [
+      { "name": "OVO", "amount": 2, "prot": 12, "fat": 10, "carb": 2, "kcal": 160 },
+      { "name": "AZEITE", "amount": 13, "prot": 0, "fat": 12, "carb": 0, "kcal": 108 }
+    ]
+  }
+        ];
+        
+        for (let item of PRELOAD_DATA) {
+            await saveData('Inf_2', item);
+        }
+    }
+
     const today = new Date().toISOString().split('T')[0];
     let availableFoods = [];
     let historyChartInstance = null;
@@ -13,7 +106,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     let histRefDate = today;
     let notifiedMeals = { date: today };
 
-    // Variáveis globais para os cálculos interdependentes da página 2
     let currentWeight = 70;
     let currentGCD = 2000;
 
@@ -168,7 +260,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 mealBox.innerHTML = `
                     <div class="meal-header" style="display: flex; justify-content: space-between; padding: 12px; background: #fff; border: 1px solid #000; cursor: pointer;">
                         <span><strong>${meal.name}</strong></span>
-                        <span>${meal.time} <i class="fa-solid fa-pencil edit-meal-btn" style="margin-left: 15px; cursor: pointer;"></i></span>
+                        <span>
+                            ${meal.time} 
+                            <i class="fa-solid fa-pencil edit-meal-btn" data-meal="${mealIndex}" style="margin-left: 10px; cursor: pointer; color: #555;"></i>
+                            <i class="fa-solid fa-trash delete-meal-btn" data-meal="${mealIndex}" style="margin-left: 15px; cursor: pointer; color: #ff4d4d;"></i>
+                        </span>
                     </div>
                     <div class="meal-details" style="display: none; padding: 0; border: 1px solid #000; border-top: none;">
                         <table class="macro-table" style="width: 100%; border: none; font-size: 13px; margin: 0;">
@@ -193,10 +289,32 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const header = mealBox.querySelector('.meal-header');
                 const details = mealBox.querySelector('.meal-details');
                 header.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('fa-pencil')) return;
+                    // Previne que o clique nos ícones expanda a tabela
+                    if (e.target.classList.contains('fa-pencil') || e.target.classList.contains('fa-trash')) return;
                     details.style.display = details.style.display === 'none' ? 'block' : 'none';
                 });
             });
+
+            // Lógica para excluir refeição
+            document.querySelectorAll('.delete-meal-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const mealIdx = e.target.getAttribute('data-meal');
+                    if(confirm(`Tem certeza que deseja excluir a refeição "${todayData.meals[mealIdx].name}"?`)) {
+                        todayData.meals.splice(mealIdx, 1);
+                        await saveData('Inf_3', todayData);
+                        loadHomePage();
+                    }
+                });
+            });
+
+            // Lógica para editar Nome e Horário da refeição
+            document.querySelectorAll('.edit-meal-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const mealIdx = e.target.getAttribute('data-meal');
+                    showEditMealModal(mealIdx, todayData);
+                });
+            });
+
         } else {
             container.innerHTML = '<p style="text-align:center; color: #777; margin-top: 20px;">Nenhuma refeição registrada hoje.</p>';
         }
@@ -218,6 +336,51 @@ document.addEventListener('DOMContentLoaded', async () => {
                     loadHomePage(); 
                 }
             });
+        });
+    }
+
+    async function showEditMealModal(mealIdx, todayData) {
+        const meal = todayData.meals[mealIdx];
+        const inf2 = await getAllData('Inf_2') || [];
+        const mealNames = inf2.filter(item => item.type === 'mealName');
+        
+        let optionsHtml = '';
+        if (mealNames.length > 0) {
+            mealNames.forEach(m => {
+                optionsHtml += `<option value="${m.name}" ${m.name === meal.name ? 'selected' : ''}>${m.name}</option>`;
+            });
+        } else {
+            ['Café da Manhã', 'Lanche da Manhã', 'Almoço', 'Lanche da Tarde', 'Jantar', 'Ceia'].forEach(name => {
+                optionsHtml += `<option value="${name}" ${name === meal.name ? 'selected' : ''}>${name}</option>`;
+            });
+        }
+
+        const overlay = document.createElement('div');
+        overlay.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; display:flex; justify-content:center; align-items:center;";
+        overlay.innerHTML = `
+            <div style="background:#fff; padding:20px; border: 2px solid #000; width:90%; max-width:350px;">
+                <h3 style="text-align:center; margin-bottom:15px;">EDITAR REFEIÇÃO</h3>
+                <label style="display:block; margin-bottom:10px;">Nome: 
+                    <select id="edit-m-name" style="width:100%; padding:5px; margin-top:5px;">${optionsHtml}</select>
+                </label>
+                <label style="display:block; margin-bottom:15px;">Horário: 
+                    <input type="time" id="edit-m-time" value="${meal.time}" style="width:100%; padding:5px; margin-top:5px;">
+                </label>
+                <div style="display:flex; justify-content:space-between;">
+                    <button id="edit-m-cancel" style="padding:8px 15px;">Cancelar</button>
+                    <button id="edit-m-save" class="action-btn" style="margin:0; width:60px;"><i class="fa-solid fa-check"></i></button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        document.getElementById('edit-m-cancel').addEventListener('click', () => document.body.removeChild(overlay));
+        document.getElementById('edit-m-save').addEventListener('click', async () => {
+            meal.name = document.getElementById('edit-m-name').value;
+            meal.time = document.getElementById('edit-m-time').value;
+            await saveData('Inf_3', todayData);
+            document.body.removeChild(overlay);
+            loadHomePage();
         });
     }
 
@@ -516,9 +679,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.querySelector('.hist-btn[data-type="macros"]').addEventListener('click', () => { histMode = 'macros'; histSubMode = 'kcal'; loadHistoryPage(); });
     document.querySelector('.hist-btn[data-type="body"]').addEventListener('click', () => { histMode = 'body'; histSubMode = 'weight'; loadHistoryPage(); });
 
-    // Nova função de popup nativo do calendário customizado
     document.querySelector('.fa-calendar').parentElement.addEventListener('click', async () => {
-        let currentDateView = new Date(histRefDate + 'T12:00:00'); // T12 previne bugs de fuso horário
+        let currentDateView = new Date(histRefDate + 'T12:00:00'); 
         let allData = await getAllData('Inf_3') || [];
         
         function renderCalendar(year, month) {
@@ -553,7 +715,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 grid.appendChild(cell);
             });
 
-            // Dias do mês anterior para completar o grid (cinza/vermelho claro)
             for(let i = firstDay - 1; i >= 0; i--) {
                 let cell = document.createElement('div');
                 cell.className = 'calendar-day empty';
@@ -562,7 +723,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 grid.appendChild(cell);
             }
 
-            // Dias reais do mês
             for(let i = 1; i <= daysInMonth; i++) {
                 let cell = document.createElement('div');
                 cell.className = 'calendar-day';
@@ -572,7 +732,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 let dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
                 
-                // Lógica principal: Verifica se tem dado registrado para pintar o circulo preto
                 let dayData = allData.find(d => d.date === dateStr);
                 if(dayData && dayData.meals && dayData.meals.length > 0) {
                     cell.classList.add('has-data');
@@ -589,7 +748,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 grid.appendChild(cell);
             }
 
-            // Dias do mês seguinte para completar o grid (cinza)
             let totalCells = firstDay + daysInMonth;
             let remainingCells = 42 - totalCells; 
             if(remainingCells >= 7 && totalCells <= 35) remainingCells = 35 - totalCells; 
@@ -606,12 +764,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             overlay.appendChild(popup);
             document.body.appendChild(overlay);
 
-            // Fechar ao clicar fora
             overlay.addEventListener('click', (e) => {
                 if(e.target === overlay) document.body.removeChild(overlay);
             });
 
-            // Setas de Navegação Mês a Mês
             document.getElementById('cal-prev').addEventListener('click', () => {
                 let newDate = new Date(year, month - 1, 1);
                 renderCalendar(newDate.getFullYear(), newDate.getMonth());
