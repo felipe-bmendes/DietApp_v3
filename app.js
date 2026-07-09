@@ -222,7 +222,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // =========================================================
-    // LÓGICA DA PÁGINA 2 (OBJETIVOS) - NOVA MATEMÁTICA
+    // LÓGICA DA PÁGINA 2 (OBJETIVOS) 
     // =========================================================
     async function calculateTDEE() {
         userData = await getData('Inf_1', 1);
@@ -245,7 +245,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         await calculateTDEE();
         let todayData = await getData('Inf_3', today);
 
-        // Se já tiver meta registrada para o dia de hoje, ignora a tela de perguntas e vai direto para a edição manual.
         if (todayData && todayData.target_kcal) {
             document.getElementById('goals-question').style.display = 'none';
             document.getElementById('goals-calculator').style.display = 'none';
@@ -256,17 +255,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('goal-fat').value = todayData.target_fat;
             document.getElementById('goal-carb').value = todayData.target_carb;
 
-            // Preenche os campos da direita baseados nos dados resgatados
             syncFromMacros();
         } else {
-            // Primeira vez usando no dia
             document.getElementById('goals-question').style.display = 'block';
             document.getElementById('goals-calculator').style.display = 'none';
             document.getElementById('goals-manual').style.display = 'none';
         }
     }
 
-    // Navegação interna da página de Objetivos
     document.getElementById('btn-goals-yes').addEventListener('click', () => {
         document.getElementById('goals-question').style.display = 'none';
         document.getElementById('goals-manual').style.display = 'block';
@@ -282,13 +278,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('goals-calculator').style.display = 'block';
     });
 
-    // Funções auxiliares para leitura segura das caixas de texto com formatação brasileira e sinais de +
     function parseCustomNumber(val) {
         if(!val) return 0;
         return parseFloat(val.toString().replace('+', '').replace(',', '.')) || 0;
     }
 
-    // Gatilho: Edição das linhas de Macros (Prot, Fat, Carb) altera Totais e Calorias
     function syncFromMacros() {
         const p = parseCustomNumber(document.getElementById('goal-prot').value);
         const c = parseCustomNumber(document.getElementById('goal-carb').value);
@@ -309,7 +303,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Gatilho: Edição das Calorias (Garante a matemática mexendo apenas no Carboidrato)
     function syncFromKcal() {
         const kcal = parseCustomNumber(document.getElementById('goal-kcal').value);
         const p = parseCustomNumber(document.getElementById('goal-prot').value);
@@ -321,7 +314,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         let c = (kcal - (p * 4) - (f * 9)) / 4;
-        if (c < 0) c = 0; // Impede visualização negativa de carboidratos
+        if (c < 0) c = 0; 
         document.getElementById('goal-carb').value = Math.round(c);
         
         if(currentWeight > 0) {
@@ -329,7 +322,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Gatilho: Edição da Porcentagem de superávit/déficit
     function syncFromKcalPct() {
         const pct = parseCustomNumber(document.getElementById('goal-kcal-pct').value);
         const newKcal = Math.round(currentGCD * (1 + (pct / 100)));
@@ -337,14 +329,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         syncFromKcal();
     }
 
-    // Vinculando os eventos aos 8 campos editáveis
     document.getElementById('goal-kcal').addEventListener('input', syncFromKcal);
     document.getElementById('goal-kcal-pct').addEventListener('input', syncFromKcalPct);
     document.getElementById('goal-prot').addEventListener('input', syncFromMacros);
     document.getElementById('goal-fat').addEventListener('input', syncFromMacros);
     document.getElementById('goal-carb').addEventListener('input', syncFromMacros);
 
-    // Eventos específicos para a edição da coluna direita (g/kg)
     document.getElementById('goal-prot-kg').addEventListener('input', (e) => {
         let val = parseCustomNumber(e.target.value);
         document.getElementById('goal-prot').value = Math.round(val * currentWeight);
@@ -361,7 +351,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         syncFromMacros();
     });
 
-    // Cálculos Automáticos dos botões Bulking, Cutting e Manutenção
     document.querySelectorAll('.calc-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             const goal = e.currentTarget.getAttribute('data-goal');
@@ -380,7 +369,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('goals-calculator').style.display = 'none';
             document.getElementById('goals-manual').style.display = 'block';
             
-            // O sync encarrega-se de preencher magicamente todas as taxas g/kg e %
             syncFromMacros();
         });
     });
@@ -388,7 +376,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('save-goals-btn').addEventListener('click', async () => {
         let todayData = await getData('Inf_3', today) || { date: today, meals: [] };
         
-        // Salva os dados atualizando a inserção mais recente do dia sem interferir no passado
         todayData.target_kcal = parseFloat(document.getElementById('goal-kcal').value);
         todayData.target_prot = parseFloat(document.getElementById('goal-prot').value);
         todayData.target_fat = parseFloat(document.getElementById('goal-fat').value);
@@ -397,7 +384,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         await saveData('Inf_3', todayData);
         alert('Metas registradas com sucesso e sincronizadas com o seu resumo diário.');
         
-        // Força a UI a retornar para a página HOME após salvar
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.querySelector('[data-target="page-home"]').classList.add('active');
         document.querySelectorAll('.page').forEach(p => p.classList.remove('screen-active'));
@@ -525,20 +511,118 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // =========================================================
-    // LÓGICA DA PÁGINA 4 (HISTÓRICO E GRÁFICOS)
+    // LÓGICA DA PÁGINA 4 (HISTÓRICO E GRÁFICOS) E CALENDÁRIO
     // =========================================================
     document.querySelector('.hist-btn[data-type="macros"]').addEventListener('click', () => { histMode = 'macros'; histSubMode = 'kcal'; loadHistoryPage(); });
     document.querySelector('.hist-btn[data-type="body"]').addEventListener('click', () => { histMode = 'body'; histSubMode = 'weight'; loadHistoryPage(); });
 
-    document.querySelector('.fa-calendar').parentElement.addEventListener('click', () => {
-        let dInput = document.createElement('input');
-        dInput.type = 'date'; dInput.style.position = 'absolute'; dInput.style.opacity = 0;
-        document.body.appendChild(dInput);
-        dInput.addEventListener('change', (e) => {
-            if(e.target.value) { histRefDate = e.target.value; loadHistoryPage(); }
-            document.body.removeChild(dInput);
-        });
-        dInput.showPicker ? dInput.showPicker() : dInput.click();
+    // Nova função de popup nativo do calendário customizado
+    document.querySelector('.fa-calendar').parentElement.addEventListener('click', async () => {
+        let currentDateView = new Date(histRefDate + 'T12:00:00'); // T12 previne bugs de fuso horário
+        let allData = await getAllData('Inf_3') || [];
+        
+        function renderCalendar(year, month) {
+            let overlay = document.getElementById('custom-calendar-overlay');
+            if(overlay) document.body.removeChild(overlay);
+
+            overlay = document.createElement('div');
+            overlay.id = 'custom-calendar-overlay';
+            overlay.className = 'calendar-overlay';
+
+            const monthNames = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+            
+            let firstDay = new Date(year, month, 1).getDay(); 
+            let daysInMonth = new Date(year, month + 1, 0).getDate();
+            let daysInPrevMonth = new Date(year, month, 0).getDate();
+
+            let popup = document.createElement('div');
+            popup.className = 'calendar-popup';
+
+            let header = document.createElement('div');
+            header.className = 'calendar-header';
+            header.innerHTML = `<span class="calendar-nav" id="cal-prev"><</span><span>${monthNames[month]} de ${year}</span><span class="calendar-nav" id="cal-next">></span>`;
+            popup.appendChild(header);
+
+            let grid = document.createElement('div');
+            grid.className = 'calendar-grid';
+            const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+            daysOfWeek.forEach(d => {
+                let cell = document.createElement('div');
+                cell.className = 'calendar-day-header';
+                cell.innerText = d;
+                grid.appendChild(cell);
+            });
+
+            // Dias do mês anterior para completar o grid (cinza/vermelho claro)
+            for(let i = firstDay - 1; i >= 0; i--) {
+                let cell = document.createElement('div');
+                cell.className = 'calendar-day empty';
+                cell.innerText = daysInPrevMonth - i;
+                cell.style.color = i === firstDay - 1 ? '#ff9999' : '#ccc';
+                grid.appendChild(cell);
+            }
+
+            // Dias reais do mês
+            for(let i = 1; i <= daysInMonth; i++) {
+                let cell = document.createElement('div');
+                cell.className = 'calendar-day';
+                
+                let currentDayOfWeek = new Date(year, month, i).getDay();
+                if(currentDayOfWeek === 0) cell.classList.add('sunday');
+
+                let dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+                
+                // Lógica principal: Verifica se tem dado registrado para pintar o circulo preto
+                let dayData = allData.find(d => d.date === dateStr);
+                if(dayData && dayData.meals && dayData.meals.length > 0) {
+                    cell.classList.add('has-data');
+                }
+
+                if(dateStr === histRefDate) cell.classList.add('selected');
+
+                cell.innerText = i;
+                cell.addEventListener('click', () => {
+                    histRefDate = dateStr;
+                    document.body.removeChild(overlay);
+                    loadHistoryPage();
+                });
+                grid.appendChild(cell);
+            }
+
+            // Dias do mês seguinte para completar o grid (cinza)
+            let totalCells = firstDay + daysInMonth;
+            let remainingCells = 42 - totalCells; 
+            if(remainingCells >= 7 && totalCells <= 35) remainingCells = 35 - totalCells; 
+            
+            for(let i = 1; i <= remainingCells; i++) {
+                let cell = document.createElement('div');
+                cell.className = 'calendar-day empty';
+                cell.innerText = i;
+                cell.style.color = '#ccc';
+                grid.appendChild(cell);
+            }
+
+            popup.appendChild(grid);
+            overlay.appendChild(popup);
+            document.body.appendChild(overlay);
+
+            // Fechar ao clicar fora
+            overlay.addEventListener('click', (e) => {
+                if(e.target === overlay) document.body.removeChild(overlay);
+            });
+
+            // Setas de Navegação Mês a Mês
+            document.getElementById('cal-prev').addEventListener('click', () => {
+                let newDate = new Date(year, month - 1, 1);
+                renderCalendar(newDate.getFullYear(), newDate.getMonth());
+            });
+            document.getElementById('cal-next').addEventListener('click', () => {
+                let newDate = new Date(year, month + 1, 1);
+                renderCalendar(newDate.getFullYear(), newDate.getMonth());
+            });
+        }
+
+        renderCalendar(currentDateView.getFullYear(), currentDateView.getMonth());
     });
 
     async function loadHistoryPage() {
