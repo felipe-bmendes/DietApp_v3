@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Obter data atual no formato YYYY-MM-DD
     const today = new Date().toISOString().split('T')[0];
+    
+    // Variável global para armazenar os alimentos do autocomplete
+    let availableFoods = [];
 
     // Verifica se Inf_1 existe
     let userData = await getData('Inf_1', 1);
@@ -32,6 +35,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             if (targetId === 'page-goals') loadGoalsPage();
             if (targetId === 'page-profile') loadProfilePage();
+            if (targetId === 'page-add') loadAddMealPage();
         });
     });
 
@@ -69,7 +73,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return age;
     }
 
-    // Carregar Home (Página 1) - ATUALIZADO
+    // Carregar Home (Página 1)
     async function loadHomePage() {
         userData = await getData('Inf_1', 1);
         let todayData = await getData('Inf_3', today) || { date: today, meals: [] };
@@ -115,7 +119,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // 4. Renderizar a lista de refeições e a minitabela expansível
         const container = document.getElementById('home-meals-container');
-        container.innerHTML = ''; // Limpar contêiner antes de re-renderizar
+        container.innerHTML = ''; 
 
         if (todayData.meals && todayData.meals.length > 0) {
             todayData.meals.forEach((meal, mealIndex) => {
@@ -123,7 +127,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 mealBox.className = 'meal-box';
                 mealBox.style.marginBottom = '10px';
                 
-                // Somatório interno da refeição
                 let mealTotal = { kcal: 0, prot: 0, carb: 0, fat: 0 };
                 meal.foods.forEach(f => {
                     mealTotal.kcal += f.kcal; 
@@ -171,11 +174,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 `;
                 container.appendChild(mealBox);
 
-                // Evento para expandir/retrair a minitabela
                 const header = mealBox.querySelector('.meal-header');
                 const details = mealBox.querySelector('.meal-details');
                 header.addEventListener('click', (e) => {
-                    // Impede de abrir/fechar se o usuário clicou direto no ícone do lápis
                     if (e.target.classList.contains('fa-pencil')) return;
                     details.style.display = details.style.display === 'none' ? 'block' : 'none';
                 });
@@ -192,14 +193,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 let currentFood = todayData.meals[mealIdx].foods[foodIdx];
                 
-                // Prompt para o usuário digitar a nova quantidade
                 let newAmount = prompt(`Editar quantidade (g/ml) de ${currentFood.name}:`, Math.round(currentFood.amount));
                 
-                // Valida se o usuário digitou um número válido e maior que zero
                 if (newAmount !== null && !isNaN(newAmount) && newAmount > 0) {
                     newAmount = parseFloat(newAmount);
                     
-                    // Regra de três simples para recalcular todos os macros
                     const ratio = newAmount / currentFood.amount;
                     
                     currentFood.amount = newAmount;
@@ -208,15 +206,208 @@ document.addEventListener('DOMContentLoaded', async () => {
                     currentFood.carb *= ratio;
                     currentFood.fat *= ratio;
 
-                    // Salva no banco de dados
                     await saveData('Inf_3', todayData);
-                    
-                    // Recarrega a página automaticamente para atualizar tabelas e as barras de resumo
                     loadHomePage(); 
                 }
             });
         });
     }
+
+    // Carregar Adicionar Refeição (Página 3)
+    async function loadAddMealPage() {
+        const inf2 = await getAllData('Inf_2') || [];
+        const mealNames = inf2.filter(item => item.type === 'mealName');
+        availableFoods = inf2.filter(item => item.type === 'food' || item.type === 'plate');
+
+        // Populando as opções de nome de refeição
+        const nameSelect = document.getElementById('add-meal-name');
+        nameSelect.innerHTML = '';
+        if (mealNames.length > 0) {
+            mealNames.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m.name;
+                opt.innerText = m.name;
+                nameSelect.appendChild(opt);
+            });
+        } else {
+            // Opções padrão caso a página 5 não tenha sido configurada ainda
+            ['Café da Manhã', 'Lanche da Manhã', 'Almoço', 'Lanche da Tarde', 'Jantar', 'Ceia'].forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.innerText = name;
+                nameSelect.appendChild(opt);
+            });
+        }
+
+        // Horário padrão: agora
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        document.getElementById('add-meal-time').value = `${hh}:${mm}`;
+
+        // Configurando a datalist para autocompletar alimentos
+        let datalist = document.getElementById('food-options');
+        if (!datalist) {
+            datalist = document.createElement('datalist');
+            datalist.id = 'food-options';
+            document.body.appendChild(datalist);
+        }
+        datalist.innerHTML = '';
+        
+        // Dados temporários injetados automaticamente para teste
+        if (availableFoods.length === 0) {
+            const mockFoods = [
+                { type: 'food', name: 'Arroz Branco', amount: 100, prot: 2.5, carb: 28, fat: 0.2, kcal: 130 },
+                { type: 'food', name: 'Feijão Carioca', amount: 100, prot: 4.8, carb: 13.6, fat: 0.5, kcal: 76 },
+                { type: 'food', name: 'Frango Grelhado', amount: 100, prot: 32, carb: 0, fat: 2.5, kcal: 159 },
+                { type: 'food', name: 'Ovo Cozido', amount: 50, prot: 6.5, carb: 0.5, fat: 5, kcal: 75 }
+            ];
+            for (let f of mockFoods) await saveData('Inf_2', f);
+            availableFoods = mockFoods;
+        }
+
+        availableFoods.forEach(f => {
+            const opt = document.createElement('option');
+            opt.value = f.name;
+            datalist.appendChild(opt);
+        });
+
+        // Resetar a tabela e criar a primeira linha
+        const tbody = document.getElementById('add-meal-tbody');
+        tbody.innerHTML = '';
+        addMealRow();
+    }
+
+    // Função para adicionar uma linha dinâmica na tabela de Nova Refeição
+    function addMealRow() {
+        const tbody = document.getElementById('add-meal-tbody');
+        const tr = document.createElement('tr');
+        
+        tr.innerHTML = `
+            <td><input type="text" list="food-options" class="row-food-name" style="width:100%; box-sizing:border-box;"></td>
+            <td><input type="number" class="row-food-qty" style="width:50px;" min="1"></td>
+            <td class="row-prot">0</td>
+            <td class="row-carb">0</td>
+            <td class="row-fat">0</td>
+            <td class="row-kcal">0</td>
+        `;
+
+        const nameInput = tr.querySelector('.row-food-name');
+        const qtyInput = tr.querySelector('.row-food-qty');
+        
+        // Guarda os dados base daquele alimento para regra de três
+        tr.dataset.baseAmount = 0;
+        tr.dataset.baseProt = 0;
+        tr.dataset.baseCarb = 0;
+        tr.dataset.baseFat = 0;
+        tr.dataset.baseKcal = 0;
+
+        // Gatilho ativado quando o usuário busca e seleciona um alimento salvo
+        nameInput.addEventListener('input', (e) => {
+            const selectedName = e.target.value;
+            const food = availableFoods.find(f => f.name.toLowerCase() === selectedName.toLowerCase());
+            
+            if (food) {
+                qtyInput.value = Math.round(food.amount);
+                tr.dataset.baseAmount = food.amount;
+                tr.dataset.baseProt = food.prot;
+                tr.dataset.baseCarb = food.carb;
+                tr.dataset.baseFat = food.fat;
+                tr.dataset.baseKcal = food.kcal;
+                
+                updateRowVisuals(tr, 1);
+            }
+        });
+
+        // Gatilho ativado quando o usuário altera a quantidade manualmente
+        qtyInput.addEventListener('input', (e) => {
+            const baseAmount = parseFloat(tr.dataset.baseAmount);
+            const newAmount = parseFloat(e.target.value);
+            
+            if (baseAmount > 0 && !isNaN(newAmount) && newAmount > 0) {
+                const ratio = newAmount / baseAmount;
+                updateRowVisuals(tr, ratio);
+            } else {
+                updateRowVisuals(tr, 0);
+            }
+        });
+
+        tbody.appendChild(tr);
+    }
+
+    function updateRowVisuals(tr, ratio) {
+        tr.querySelector('.row-prot').innerText = Math.round(parseFloat(tr.dataset.baseProt) * ratio);
+        tr.querySelector('.row-carb').innerText = Math.round(parseFloat(tr.dataset.baseCarb) * ratio);
+        tr.querySelector('.row-fat').innerText = Math.round(parseFloat(tr.dataset.baseFat) * ratio);
+        tr.querySelector('.row-kcal').innerText = Math.round(parseFloat(tr.dataset.baseKcal) * ratio);
+    }
+
+    // Lógica do botão + (adicionar nova linha à tabela)
+    document.getElementById('add-row-btn').addEventListener('click', () => {
+        addMealRow();
+    });
+
+    // Lógica do botão V (salvar refeição)
+    document.getElementById('save-meal-btn').addEventListener('click', async () => {
+        const mealName = document.getElementById('add-meal-name').value;
+        const mealTime = document.getElementById('add-meal-time').value;
+        const tbody = document.getElementById('add-meal-tbody');
+        const rows = tbody.querySelectorAll('tr');
+        
+        let foodsToSave = [];
+        let hasError = false;
+
+        rows.forEach(tr => {
+            const name = tr.querySelector('.row-food-name').value;
+            const qty = parseFloat(tr.querySelector('.row-food-qty').value);
+            
+            if (name && name.trim() !== '') {
+                if (isNaN(qty) || qty <= 0) {
+                    hasError = true;
+                } else {
+                    foodsToSave.push({
+                        name: name.trim(),
+                        amount: qty,
+                        prot: parseFloat(tr.querySelector('.row-prot').innerText),
+                        carb: parseFloat(tr.querySelector('.row-carb').innerText),
+                        fat: parseFloat(tr.querySelector('.row-fat').innerText),
+                        kcal: parseFloat(tr.querySelector('.row-kcal').innerText)
+                    });
+                }
+            }
+        });
+
+        if (hasError) {
+            alert('Por favor, insira quantidades válidas maiores que zero para os alimentos selecionados.');
+            return;
+        }
+
+        if (foodsToSave.length === 0) {
+            alert('Adicione pelo menos um alimento na refeição.');
+            return;
+        }
+
+        // Salvar a refeição atrelada à data de hoje em Inf_3
+        let todayData = await getData('Inf_3', today) || { date: today, meals: [] };
+        if (!todayData.meals) todayData.meals = [];
+
+        todayData.meals.push({
+            name: mealName,
+            time: mealTime || new Date().toTimeString().slice(0, 5),
+            foods: foodsToSave
+        });
+
+        await saveData('Inf_3', todayData);
+        
+        // Redirecionamento automático para a Home com feedback visual
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('[data-target="page-home"]').classList.add('active');
+        
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('screen-active'));
+        document.getElementById('page-home').classList.add('screen-active');
+        
+        loadHomePage();
+    });
 
     // Lógica da Página de Objetivos (Harris-Benedict)
     document.getElementById('btn-goals-yes').addEventListener('click', () => {
@@ -234,7 +425,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function calculateTDEE() {
         userData = await getData('Inf_1', 1);
         let todayData = await getData('Inf_3', today);
-        let weight = todayData?.weight || 70; // fallback se houver erro
+        let weight = todayData?.weight || 70; 
         let fa = todayData?.activityLevel || 1.2;
         let age = calcAge(userData.birth);
         
