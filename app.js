@@ -13,6 +13,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     let histRefDate = today;
     let notifiedMeals = { date: today };
 
+    // Variáveis globais para os cálculos interdependentes da página 2
+    let currentWeight = 70;
+    let currentGCD = 2000;
+
     if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
         Notification.requestPermission();
     }
@@ -218,47 +222,154 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // =========================================================
-    // LÓGICA DA PÁGINA 2 (OBJETIVOS)
+    // LÓGICA DA PÁGINA 2 (OBJETIVOS) - NOVA MATEMÁTICA
     // =========================================================
+    async function calculateTDEE() {
+        userData = await getData('Inf_1', 1);
+        let todayData = await getData('Inf_3', today);
+        currentWeight = todayData?.weight || 70; 
+        let fa = todayData?.activityLevel || 1.2;
+        let age = calcAge(userData.birth);
+        let gcd = 0;
+        if (userData.sex === 'M') { gcd = (66.7 + (13.75 * currentWeight) + (5 * userData.height) - (6.8 * age)) * fa; } 
+        else { gcd = (655.1 + (9.56 * currentWeight) + (1.85 * userData.height) - (4.68 * age)) * fa; }
+        
+        currentGCD = Math.round(gcd);
+        todayData = todayData || { date: today, meals: [] };
+        todayData.tdee = currentGCD;
+        await saveData('Inf_3', todayData);
+        document.getElementById('display-tdee').innerText = currentGCD;
+    }
+
+    async function loadGoalsPage() {
+        await calculateTDEE();
+        let todayData = await getData('Inf_3', today);
+
+        // Se já tiver meta registrada para o dia de hoje, ignora a tela de perguntas e vai direto para a edição manual.
+        if (todayData && todayData.target_kcal) {
+            document.getElementById('goals-question').style.display = 'none';
+            document.getElementById('goals-calculator').style.display = 'none';
+            document.getElementById('goals-manual').style.display = 'block';
+
+            document.getElementById('goal-kcal').value = todayData.target_kcal;
+            document.getElementById('goal-prot').value = todayData.target_prot;
+            document.getElementById('goal-fat').value = todayData.target_fat;
+            document.getElementById('goal-carb').value = todayData.target_carb;
+
+            // Preenche os campos da direita baseados nos dados resgatados
+            syncFromMacros();
+        } else {
+            // Primeira vez usando no dia
+            document.getElementById('goals-question').style.display = 'block';
+            document.getElementById('goals-calculator').style.display = 'none';
+            document.getElementById('goals-manual').style.display = 'none';
+        }
+    }
+
+    // Navegação interna da página de Objetivos
     document.getElementById('btn-goals-yes').addEventListener('click', () => {
         document.getElementById('goals-question').style.display = 'none';
         document.getElementById('goals-manual').style.display = 'block';
-        calculateTDEE();
     });
     
     document.getElementById('btn-goals-no').addEventListener('click', () => {
         document.getElementById('goals-question').style.display = 'none';
         document.getElementById('goals-calculator').style.display = 'block';
-        calculateTDEE();
     });
 
-    async function calculateTDEE() {
-        userData = await getData('Inf_1', 1);
-        let todayData = await getData('Inf_3', today);
-        let weight = todayData?.weight || 70; 
-        let fa = todayData?.activityLevel || 1.2;
-        let age = calcAge(userData.birth);
-        let gcd = 0;
-        if (userData.sex === 'M') { gcd = (66.7 + (13.75 * weight) + (5 * userData.height) - (6.8 * age)) * fa; } 
-        else { gcd = (655.1 + (9.56 * weight) + (1.85 * userData.height) - (4.68 * age)) * fa; }
-        
-        todayData = todayData || { date: today, meals: [] };
-        todayData.tdee = Math.round(gcd);
-        await saveData('Inf_3', todayData);
-        document.getElementById('display-tdee').innerText = todayData.tdee;
+    document.getElementById('btn-recalc-goals').addEventListener('click', () => {
+        document.getElementById('goals-manual').style.display = 'none';
+        document.getElementById('goals-calculator').style.display = 'block';
+    });
+
+    // Funções auxiliares para leitura segura das caixas de texto com formatação brasileira e sinais de +
+    function parseCustomNumber(val) {
+        if(!val) return 0;
+        return parseFloat(val.toString().replace('+', '').replace(',', '.')) || 0;
     }
 
+    // Gatilho: Edição das linhas de Macros (Prot, Fat, Carb) altera Totais e Calorias
+    function syncFromMacros() {
+        const p = parseCustomNumber(document.getElementById('goal-prot').value);
+        const c = parseCustomNumber(document.getElementById('goal-carb').value);
+        const f = parseCustomNumber(document.getElementById('goal-fat').value);
+
+        if(currentWeight > 0) {
+            document.getElementById('goal-prot-kg').value = (p / currentWeight).toFixed(1).replace('.', ',');
+            document.getElementById('goal-carb-kg').value = (c / currentWeight).toFixed(1).replace('.', ',');
+            document.getElementById('goal-fat-kg').value = (f / currentWeight).toFixed(1).replace('.', ',');
+        }
+
+        const newKcal = Math.round((p * 4) + (c * 4) + (f * 9));
+        document.getElementById('goal-kcal').value = newKcal;
+        
+        if(currentGCD > 0) {
+            const pct = ((newKcal / currentGCD) - 1) * 100;
+            document.getElementById('goal-kcal-pct').value = pct > 0 ? `+${pct.toFixed(1)}` : pct.toFixed(1);
+        }
+    }
+
+    // Gatilho: Edição das Calorias (Garante a matemática mexendo apenas no Carboidrato)
+    function syncFromKcal() {
+        const kcal = parseCustomNumber(document.getElementById('goal-kcal').value);
+        const p = parseCustomNumber(document.getElementById('goal-prot').value);
+        const f = parseCustomNumber(document.getElementById('goal-fat').value);
+
+        if(currentGCD > 0) {
+            const pct = ((kcal / currentGCD) - 1) * 100;
+            document.getElementById('goal-kcal-pct').value = pct > 0 ? `+${pct.toFixed(1)}` : pct.toFixed(1);
+        }
+
+        let c = (kcal - (p * 4) - (f * 9)) / 4;
+        if (c < 0) c = 0; // Impede visualização negativa de carboidratos
+        document.getElementById('goal-carb').value = Math.round(c);
+        
+        if(currentWeight > 0) {
+            document.getElementById('goal-carb-kg').value = (c / currentWeight).toFixed(1).replace('.', ',');
+        }
+    }
+
+    // Gatilho: Edição da Porcentagem de superávit/déficit
+    function syncFromKcalPct() {
+        const pct = parseCustomNumber(document.getElementById('goal-kcal-pct').value);
+        const newKcal = Math.round(currentGCD * (1 + (pct / 100)));
+        document.getElementById('goal-kcal').value = newKcal;
+        syncFromKcal();
+    }
+
+    // Vinculando os eventos aos 8 campos editáveis
+    document.getElementById('goal-kcal').addEventListener('input', syncFromKcal);
+    document.getElementById('goal-kcal-pct').addEventListener('input', syncFromKcalPct);
+    document.getElementById('goal-prot').addEventListener('input', syncFromMacros);
+    document.getElementById('goal-fat').addEventListener('input', syncFromMacros);
+    document.getElementById('goal-carb').addEventListener('input', syncFromMacros);
+
+    // Eventos específicos para a edição da coluna direita (g/kg)
+    document.getElementById('goal-prot-kg').addEventListener('input', (e) => {
+        let val = parseCustomNumber(e.target.value);
+        document.getElementById('goal-prot').value = Math.round(val * currentWeight);
+        syncFromMacros();
+    });
+    document.getElementById('goal-fat-kg').addEventListener('input', (e) => {
+        let val = parseCustomNumber(e.target.value);
+        document.getElementById('goal-fat').value = Math.round(val * currentWeight);
+        syncFromMacros();
+    });
+    document.getElementById('goal-carb-kg').addEventListener('input', (e) => {
+        let val = parseCustomNumber(e.target.value);
+        document.getElementById('goal-carb').value = Math.round(val * currentWeight);
+        syncFromMacros();
+    });
+
+    // Cálculos Automáticos dos botões Bulking, Cutting e Manutenção
     document.querySelectorAll('.calc-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             const goal = e.currentTarget.getAttribute('data-goal');
-            let todayData = await getData('Inf_3', today);
-            let w = todayData.weight;
-            let gcd = todayData.tdee;
             let kcal=0, prot=0, fat=0, carb=0;
             
-            if (goal === 'bulking') { kcal = 1.2 * gcd; prot = 2 * w; fat = 1 * w; } 
-            else if (goal === 'cutting') { kcal = 0.8 * gcd; prot = 2.5 * w; fat = 1 * w; } 
-            else if (goal === 'maintenance') { kcal = 1.0 * gcd; prot = 2 * w; fat = 1 * w; }
+            if (goal === 'bulking') { kcal = 1.2 * currentGCD; prot = 2 * currentWeight; fat = 1 * currentWeight; } 
+            else if (goal === 'cutting') { kcal = 0.8 * currentGCD; prot = 2.5 * currentWeight; fat = 1 * currentWeight; } 
+            else if (goal === 'maintenance') { kcal = 1.0 * currentGCD; prot = 2 * currentWeight; fat = 1 * currentWeight; }
             carb = (kcal - (prot * 4) - (fat * 9)) / 4;
             
             document.getElementById('goal-kcal').value = Math.round(kcal);
@@ -268,24 +379,30 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             document.getElementById('goals-calculator').style.display = 'none';
             document.getElementById('goals-manual').style.display = 'block';
-            updateKgRatios(w);
+            
+            // O sync encarrega-se de preencher magicamente todas as taxas g/kg e %
+            syncFromMacros();
         });
     });
 
-    function updateKgRatios(weight) {
-        document.getElementById('goal-prot-kg').innerText = (document.getElementById('goal-prot').value / weight).toFixed(1) + ' g/kg';
-        document.getElementById('goal-fat-kg').innerText = (document.getElementById('goal-fat').value / weight).toFixed(1) + ' g/kg';
-        document.getElementById('goal-carb-kg').innerText = (document.getElementById('goal-carb').value / weight).toFixed(1) + ' g/kg';
-    }
-
     document.getElementById('save-goals-btn').addEventListener('click', async () => {
         let todayData = await getData('Inf_3', today) || { date: today, meals: [] };
+        
+        // Salva os dados atualizando a inserção mais recente do dia sem interferir no passado
         todayData.target_kcal = parseFloat(document.getElementById('goal-kcal').value);
         todayData.target_prot = parseFloat(document.getElementById('goal-prot').value);
         todayData.target_fat = parseFloat(document.getElementById('goal-fat').value);
         todayData.target_carb = parseFloat(document.getElementById('goal-carb').value);
+        
         await saveData('Inf_3', todayData);
-        alert('Metas registradas com sucesso.');
+        alert('Metas registradas com sucesso e sincronizadas com o seu resumo diário.');
+        
+        // Força a UI a retornar para a página HOME após salvar
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('[data-target="page-home"]').classList.add('active');
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('screen-active'));
+        document.getElementById('page-home').classList.add('screen-active');
+        
         loadHomePage(); 
     });
 
