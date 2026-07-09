@@ -69,21 +69,153 @@ document.addEventListener('DOMContentLoaded', async () => {
         return age;
     }
 
-    // Carregar Home
+    // Carregar Home (Página 1) - ATUALIZADO
     async function loadHomePage() {
         userData = await getData('Inf_1', 1);
-        document.getElementById('home-greeting').innerText = `Olá, ${userData.name}!`;
-        
         let todayData = await getData('Inf_3', today) || { date: today, meals: [] };
-        
-        // Exemplo de preenchimento visual das barras caso os dados existam (lógica de soma omitida para brevidade)
-        const targetKcal = todayData.target_kcal || 0;
-        const consumedKcal = 0; // Somatório das meals do dia entraria aqui
-        
-        document.getElementById('text-cal-val').innerText = `${consumedKcal}/${targetKcal} kcal`;
-        if (targetKcal > 0) {
-            document.getElementById('bar-cal').style.width = Math.min((consumedKcal/targetKcal)*100, 100) + '%';
+
+        // 1. Atualizar saudação
+        document.getElementById('home-greeting').innerText = `Olá, ${userData.name}!`;
+
+        // 2. Calcular somatórios do dia
+        let consumed = { kcal: 0, prot: 0, carb: 0, fat: 0 };
+        if (todayData.meals) {
+            todayData.meals.forEach(meal => {
+                meal.foods.forEach(food => {
+                    consumed.kcal += food.kcal;
+                    consumed.prot += food.prot;
+                    consumed.carb += food.carb;
+                    consumed.fat += food.fat;
+                });
+            });
         }
+
+        // 3. Preencher Barras de Progresso
+        const targets = {
+            kcal: todayData.target_kcal || 0,
+            prot: todayData.target_prot || 0,
+            carb: todayData.target_carb || 0,
+            fat: todayData.target_fat || 0
+        };
+
+        const updateBar = (id, current, target, unit) => {
+            const bar = document.getElementById(`bar-${id}`);
+            const text = document.getElementById(`text-${id}-val`);
+            text.innerText = `${Math.round(current)}/${Math.round(target)} ${unit}`;
+            
+            let percentage = target > 0 ? (current / target) * 100 : 0;
+            if (percentage > 100) percentage = 100; // Trava visualmente em 100%
+            bar.style.width = `${percentage}%`;
+        };
+
+        updateBar('cal', consumed.kcal, targets.kcal, 'kcal');
+        updateBar('prot', consumed.prot, targets.prot, 'g');
+        updateBar('carb', consumed.carb, targets.carb, 'g');
+        updateBar('fat', consumed.fat, targets.fat, 'g');
+
+        // 4. Renderizar a lista de refeições e a minitabela expansível
+        const container = document.getElementById('home-meals-container');
+        container.innerHTML = ''; // Limpar contêiner antes de re-renderizar
+
+        if (todayData.meals && todayData.meals.length > 0) {
+            todayData.meals.forEach((meal, mealIndex) => {
+                const mealBox = document.createElement('div');
+                mealBox.className = 'meal-box';
+                mealBox.style.marginBottom = '10px';
+                
+                // Somatório interno da refeição
+                let mealTotal = { kcal: 0, prot: 0, carb: 0, fat: 0 };
+                meal.foods.forEach(f => {
+                    mealTotal.kcal += f.kcal; 
+                    mealTotal.prot += f.prot;
+                    mealTotal.carb += f.carb; 
+                    mealTotal.fat += f.fat;
+                });
+
+                mealBox.innerHTML = `
+                    <div class="meal-header" style="display: flex; justify-content: space-between; padding: 12px; background: #fff; border: 1px solid #000; cursor: pointer;">
+                        <span><strong>${meal.name}</strong></span>
+                        <span>
+                            ${meal.time}
+                            <i class="fa-solid fa-pencil edit-meal-btn" style="margin-left: 15px; cursor: pointer;"></i>
+                        </span>
+                    </div>
+                    <div class="meal-details" style="display: none; padding: 0; border: 1px solid #000; border-top: none;">
+                        <table class="macro-table" style="width: 100%; border: none; font-size: 13px; margin: 0;">
+                            <thead>
+                                <tr style="background: #eee;">
+                                    <th>ALIMENTO</th><th>QTDE</th><th>CAL</th><th>PROT</th><th>CARB</th><th>GORD</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${meal.foods.map((food, foodIndex) => `
+                                    <tr>
+                                        <td>${food.name}</td>
+                                        <td class="editable-qty" data-meal="${mealIndex}" data-food="${foodIndex}" style="cursor:pointer; color: #0066cc; text-decoration: underline; font-weight: bold;">${Math.round(food.amount)}</td>
+                                        <td>${Math.round(food.kcal)}</td>
+                                        <td>${Math.round(food.prot)}</td>
+                                        <td>${Math.round(food.carb)}</td>
+                                        <td>${Math.round(food.fat)}</td>
+                                    </tr>
+                                `).join('')}
+                                <tr style="font-weight: bold; background: #f5f5f5;">
+                                    <td colspan="2" style="text-align: right; padding-right: 10px;">TOTAL</td>
+                                    <td>${Math.round(mealTotal.kcal)}</td>
+                                    <td>${Math.round(mealTotal.prot)}</td>
+                                    <td>${Math.round(mealTotal.carb)}</td>
+                                    <td>${Math.round(mealTotal.fat)}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                container.appendChild(mealBox);
+
+                // Evento para expandir/retrair a minitabela
+                const header = mealBox.querySelector('.meal-header');
+                const details = mealBox.querySelector('.meal-details');
+                header.addEventListener('click', (e) => {
+                    // Impede de abrir/fechar se o usuário clicou direto no ícone do lápis
+                    if (e.target.classList.contains('fa-pencil')) return;
+                    details.style.display = details.style.display === 'none' ? 'block' : 'none';
+                });
+            });
+        } else {
+            container.innerHTML = '<p style="text-align:center; color: #777; margin-top: 20px;">Nenhuma refeição registrada hoje.</p>';
+        }
+
+        // 5. Lógica de edição rápida das quantidades
+        document.querySelectorAll('.editable-qty').forEach(cell => {
+            cell.addEventListener('click', async (e) => {
+                const mealIdx = e.target.getAttribute('data-meal');
+                const foodIdx = e.target.getAttribute('data-food');
+                
+                let currentFood = todayData.meals[mealIdx].foods[foodIdx];
+                
+                // Prompt para o usuário digitar a nova quantidade
+                let newAmount = prompt(`Editar quantidade (g/ml) de ${currentFood.name}:`, Math.round(currentFood.amount));
+                
+                // Valida se o usuário digitou um número válido e maior que zero
+                if (newAmount !== null && !isNaN(newAmount) && newAmount > 0) {
+                    newAmount = parseFloat(newAmount);
+                    
+                    // Regra de três simples para recalcular todos os macros
+                    const ratio = newAmount / currentFood.amount;
+                    
+                    currentFood.amount = newAmount;
+                    currentFood.kcal *= ratio;
+                    currentFood.prot *= ratio;
+                    currentFood.carb *= ratio;
+                    currentFood.fat *= ratio;
+
+                    // Salva no banco de dados
+                    await saveData('Inf_3', todayData);
+                    
+                    // Recarrega a página automaticamente para atualizar tabelas e as barras de resumo
+                    loadHomePage(); 
+                }
+            });
+        });
     }
 
     // Lógica da Página de Objetivos (Harris-Benedict)
