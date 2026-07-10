@@ -1,11 +1,19 @@
 document.addEventListener('DOMContentLoaded', async () => {
+    // Força a atualização do Service Worker para evitar carregamento do código antigo no cache
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW falhou:', err));
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) registration.update();
+        });
     }
 
-    await initDB();
-    
-    // Função auxiliar para deletar do banco
+    try {
+        await initDB();
+    } catch(e) {
+        console.error("Erro ao inicializar DB:", e);
+        alert("Erro no banco de dados. Tente recarregar a página.");
+        return;
+    }
+
     window.deleteDataDb = function(storeName, id) {
         return new Promise((resolve, reject) => {
             const transaction = db.transaction([storeName], 'readwrite');
@@ -17,36 +25,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // =========================================================
-    // INJEÇÃO AUTOMÁTICA DE ALIMENTOS
+    // INJEÇÃO AUTOMÁTICA DE ALIMENTOS COM MARCAS
     // =========================================================
     let inf2Check = await getAllData('Inf_2');
     if (!inf2Check || inf2Check.length === 0) {
         const PRELOAD_DATA = [
-            { "type": "food", "name": "PEITO DE FRANGO", "amount": 100.0, "prot": 20.0, "fat": 8.0, "carb": 0.0, "kcal": 160.0 },
+            { "type": "food", "name": "PEITO DE FRANGO (Regina)", "amount": 100.0, "prot": 20.0, "fat": 8.0, "carb": 0.0, "kcal": 160.0 },
             { "type": "food", "name": "CARNE DE BOI COZIDA", "amount": 100.0, "prot": 28.0, "fat": 11.0, "carb": 0.0, "kcal": 207.0 },
             { "type": "food", "name": "PEITO DE PORCO ASSADA", "amount": 100.0, "prot": 24.0, "fat": 33.0, "carb": 0.0, "kcal": 393.0 },
             { "type": "food", "name": "BATA DOCE", "amount": 100.0, "prot": 0.6, "fat": 0.1, "carb": 20.0, "kcal": 77.0 },
             { "type": "food", "name": "INHAME", "amount": 80.0, "prot": 0.6, "fat": 0.1, "carb": 20.0, "kcal": 77.0 },
-            { "type": "food", "name": "QUEIJO MINAS", "amount": 30.0, "prot": 6.0, "fat": 6.0, "carb": 0.0, "kcal": 80.0 },
+            { "type": "food", "name": "QUEIJO MINAS (Betânia)", "amount": 30.0, "prot": 6.0, "fat": 6.0, "carb": 0.0, "kcal": 80.0 },
             { "type": "food", "name": "QUEIJO MUSSARELA", "amount": 40.0, "prot": 4.0, "fat": 4.0, "carb": 0.0, "kcal": 60.0 },
-            { "type": "food", "name": "ARROZ BRANCO CRU", "amount": 50.0, "prot": 3.7, "fat": 0.5, "carb": 40.0, "kcal": 177.0 },
-            { "type": "food", "name": "ARROZ BRANCO COZIDO", "amount": 300.0, "prot": 6.0, "fat": 0.0, "carb": 84.0, "kcal": 360.0 },
-            { "type": "food", "name": "FEIJÃO CARIOCA", "amount": 40.0, "prot": 9.0, "fat": 0.0, "carb": 24.0, "kcal": 135.0 },
-            { "type": "food", "name": "FEIJÃO PRETO", "amount": 60.0, "prot": 12.0, "fat": 1.3, "carb": 20.0, "kcal": 136.0 },
-            { "type": "food", "name": "FEIJÃO COZIDO", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 22.0, "kcal": 0.0 },
+            { "type": "food", "name": "ARROZ BRANCO CRU (Tio Urbano)", "amount": 50.0, "prot": 3.7, "fat": 0.5, "carb": 40.0, "kcal": 177.0 },
+            { "type": "food", "name": "ARROZ BRANCO COZIDO (Tio Urbano)", "amount": 300.0, "prot": 6.0, "fat": 0.0, "carb": 84.0, "kcal": 360.0 },
+            { "type": "food", "name": "FEIJÃO CARIOCA (Precioso)", "amount": 40.0, "prot": 9.0, "fat": 0.0, "carb": 24.0, "kcal": 135.0 },
+            { "type": "food", "name": "FEIJÃO PRETO (Camil)", "amount": 60.0, "prot": 12.0, "fat": 1.3, "carb": 20.0, "kcal": 136.0 },
+            { "type": "food", "name": "FEIJÃO COZIDO (Camil)", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 22.0, "kcal": 0.0 },
             { "type": "food", "name": "BISTECA DE PORCO", "amount": 100.0, "prot": 30.0, "fat": 17.0, "carb": 0.0, "kcal": 280.0 },
-            { "type": "food", "name": "CARNE DE HAMBURGUER", "amount": 180.0, "prot": 31.0, "fat": 40.0, "carb": 0.0, "kcal": 482.0 },
-            { "type": "food", "name": "CARNE DE SOL COM CEBOLA", "amount": 100.0, "prot": 19.0, "fat": 18.0, "carb": 2.8, "kcal": 240.0 },
-            { "type": "food", "name": "COXAS DE FRANGO", "amount": 100.0, "prot": 16.0, "fat": 7.2, "carb": 1.3, "kcal": 134.0 },
+            { "type": "food", "name": "CARNE DE HAMBURGUER (Maturatta Friboi)", "amount": 180.0, "prot": 31.0, "fat": 40.0, "carb": 0.0, "kcal": 482.0 },
+            { "type": "food", "name": "CARNE DE SOL COM CEBOLA (ProntoCarne)", "amount": 100.0, "prot": 19.0, "fat": 18.0, "carb": 2.8, "kcal": 240.0 },
+            { "type": "food", "name": "COXAS DE FRANGO (Perdigão)", "amount": 100.0, "prot": 16.0, "fat": 7.2, "carb": 1.3, "kcal": 134.0 },
             { "type": "food", "name": "OVO", "amount": 1.0, "prot": 6.0, "fat": 5.0, "carb": 1.0, "kcal": 80.0 },
             { "type": "food", "name": "AZEITE", "amount": 13.0, "prot": 0.0, "fat": 12.0, "carb": 0.0, "kcal": 108.0 },
-            { "type": "food", "name": "LEITE INTEGRAL", "amount": 200.0, "prot": 6.0, "fat": 6.0, "carb": 10.0, "kcal": 118.0 },
+            { "type": "food", "name": "LEITE INTEGRAL (Maranguape)", "amount": 200.0, "prot": 6.0, "fat": 6.0, "carb": 10.0, "kcal": 118.0 },
             { "type": "food", "name": "BANANA", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 25.0, "kcal": 100.0 },
-            { "type": "food", "name": "WHEY HIPERCALÓRICO", "amount": 120.0, "prot": 80.0, "fat": 2.5, "carb": 30.0, "kcal": 462.5 },
-            { "type": "food", "name": "(TOP) HIPERCALÓRICO", "amount": 45.0, "prot": 12.0, "fat": 1.25, "carb": 28.5, "kcal": 173.5 },
-            { "type": "food", "name": "WHEY 80%", "amount": 30.0, "prot": 23.0, "fat": 2.0, "carb": 3.4, "kcal": 124.0 },
-            { "type": "food", "name": "TAPIOCA", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 85.0, "kcal": 340.0 },
-            { "type": "food", "name": "MACARRÃO CRU", "amount": 80.0, "prot": 9.8, "fat": 1.0, "carb": 57.0, "kcal": 276.0 },
+            { "type": "food", "name": "WHEY HIPERCALÓRICO (Integral Medica)", "amount": 120.0, "prot": 80.0, "fat": 2.5, "carb": 30.0, "kcal": 462.5 },
+            { "type": "food", "name": "(TOP) HIPERCALÓRICO (Growth)", "amount": 45.0, "prot": 12.0, "fat": 1.25, "carb": 28.5, "kcal": 173.5 },
+            { "type": "food", "name": "WHEY 80% (Growth)", "amount": 30.0, "prot": 23.0, "fat": 2.0, "carb": 3.4, "kcal": 124.0 },
+            { "type": "food", "name": "TAPIOCA (Gosto Mineiro)", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 85.0, "kcal": 340.0 },
+            { "type": "food", "name": "MACARRÃO CRU (Fortaleza)", "amount": 80.0, "prot": 9.8, "fat": 1.0, "carb": 57.0, "kcal": 276.0 },
             { "type": "food", "name": "MACARRÃO COZIDO", "amount": 100.0, "prot": 4.9, "fat": 0.5, "carb": 28.5, "kcal": 0.0 },
             { "type": "food", "name": "BRÓCOLIS", "amount": 100.0, "prot": 3.0, "fat": 0.0, "carb": 5.0, "kcal": 20.0 },
             { "type": "food", "name": "MAÇÃ", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 15.0, "kcal": 60.0 },
@@ -59,42 +67,44 @@ document.addEventListener('DOMContentLoaded', async () => {
             { "type": "food", "name": "MORANGO", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 8.0, "kcal": 32.0 },
             { "type": "food", "name": "MELÃO", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 7.0, "kcal": 28.0 },
             { "type": "food", "name": "LIMÃO", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 4.0, "kcal": 16.0 },
-            { "type": "food", "name": "LEITE EM PÓ DESNATADO", "amount": 20.0, "prot": 7.0, "fat": 0.0, "carb": 10.0, "kcal": 68.0 },
-            { "type": "food", "name": "LEITE EM PÓ INTEGRAL", "amount": 25.0, "prot": 6.4, "fat": 6.7, "carb": 9.4, "kcal": 124.0 },
+            { "type": "food", "name": "LEITE EM PÓ DESNATADO (Itambé)", "amount": 20.0, "prot": 7.0, "fat": 0.0, "carb": 10.0, "kcal": 68.0 },
+            { "type": "food", "name": "LEITE EM PÓ INTEGRAL (Nestlé)", "amount": 25.0, "prot": 6.4, "fat": 6.7, "carb": 9.4, "kcal": 124.0 },
             { "type": "food", "name": "AVEIA", "amount": 100.0, "prot": 14.0, "fat": 6.0, "carb": 67.0, "kcal": 374.0 },
             { "type": "food", "name": "CENOURA", "amount": 100.0, "prot": 1.0, "fat": 0.0, "carb": 11.0, "kcal": 45.0 },
-            { "type": "food", "name": "IOGURTE NATURAL", "amount": 170.0, "prot": 6.8, "fat": 7.0, "carb": 6.8, "kcal": 117.0 },
-            { "type": "food", "name": "PÃO TORTILHA RAP10", "amount": 33.0, "prot": 2.72, "fat": 2.31, "carb": 14.85, "kcal": 90.75 },
-            { "type": "food", "name": "PÃO INTEGRAL", "amount": 50.0, "prot": 4.6, "fat": 1.8, "carb": 22.0, "kcal": 123.0 },
-            { "type": "food", "name": "PÃO DE FORMA", "amount": 50.0, "prot": 4.5, "fat": 2.2, "carb": 25.0, "kcal": 138.0 },
-            { "type": "food", "name": "PÃO DE HAMBURGUER", "amount": 50.0, "prot": 3.5, "fat": 1.0, "carb": 27.0, "kcal": 131.0 },
-            { "type": "food", "name": "REQUEIJÃO LIGHT", "amount": 100.0, "prot": 11.0, "fat": 16.0, "carb": 1.8, "kcal": 193.0 },
-            { "type": "food", "name": "CREAM CHEESE", "amount": 30.0, "prot": 1.6, "fat": 8.0, "carb": 1.3, "kcal": 84.0 },
-            { "type": "food", "name": "MAIONESE", "amount": 12.0, "prot": 0.1, "fat": 3.7, "carb": 0.8, "kcal": 37.0 },
-            { "type": "food", "name": "KETCHUP", "amount": 12.0, "prot": 0.1, "fat": 0.0, "carb": 2.9, "kcal": 13.0 },
-            { "type": "food", "name": "PASTA DE AMENDOIM", "amount": 20.0, "prot": 4.1, "fat": 9.1, "carb": 5.1, "kcal": 117.0 },
+            { "type": "food", "name": "IOGURTE NATURAL (Nestlé)", "amount": 170.0, "prot": 6.8, "fat": 7.0, "carb": 6.8, "kcal": 117.0 },
+            { "type": "food", "name": "PÃO TORTILHA RAP10 (RAP 10)", "amount": 33.0, "prot": 2.72, "fat": 2.31, "carb": 14.85, "kcal": 90.75 },
+            { "type": "food", "name": "PÃO INTEGRAL (Speciale)", "amount": 50.0, "prot": 4.6, "fat": 1.8, "carb": 22.0, "kcal": 123.0 },
+            { "type": "food", "name": "PÃO DE FORMA (Bauducco)", "amount": 50.0, "prot": 4.5, "fat": 2.2, "carb": 25.0, "kcal": 138.0 },
+            { "type": "food", "name": "PÃO DE HAMBURGUER (RealPan)", "amount": 50.0, "prot": 3.5, "fat": 1.0, "carb": 27.0, "kcal": 131.0 },
+            { "type": "food", "name": "REQUEIJÃO LIGHT (Betânia)", "amount": 100.0, "prot": 11.0, "fat": 16.0, "carb": 1.8, "kcal": 193.0 },
+            { "type": "food", "name": "CREAM CHEESE (Philadelphia)", "amount": 30.0, "prot": 1.6, "fat": 8.0, "carb": 1.3, "kcal": 84.0 },
+            { "type": "food", "name": "MAIONESE (Hellmans)", "amount": 12.0, "prot": 0.1, "fat": 3.7, "carb": 0.8, "kcal": 37.0 },
+            { "type": "food", "name": "KETCHUP (Hellmans)", "amount": 12.0, "prot": 0.1, "fat": 0.0, "carb": 2.9, "kcal": 13.0 },
+            { "type": "food", "name": "PASTA DE AMENDOIM (Dr. Peanut)", "amount": 20.0, "prot": 4.1, "fat": 9.1, "carb": 5.1, "kcal": 117.0 },
+            { "type": "food", "name": "SEMENTE DE CHIA (Vitalin)", "amount": 15.0, "prot": 2.9, "fat": 4.6, "carb": 0.5, "kcal": 56.0 },
+            { "type": "food", "name": "CACAU EM PÓ (Áster)", "amount": 20.0, "prot": 4.8, "fat": 2.2, "carb": 4.3, "kcal": 56.0 },
             { "type": "plate", "name": "TAPIOCA COM QUEIJO E CARNE (GRANDE)", "amount": 205, "prot": 18, "fat": 9.5, "carb": 97.75, "kcal": 554.5, "foods": [
-                { "name": "TAPIOCA", "amount": 115, "prot": 0, "fat": 0, "carb": 97.75, "kcal": 391 },
+                { "name": "TAPIOCA (Gosto Mineiro)", "amount": 115, "prot": 0, "fat": 0, "carb": 97.75, "kcal": 391 },
                 { "name": "CARNE DE BOI COZIDA", "amount": 50, "prot": 14, "fat": 5.5, "carb": 0, "kcal": 103.5 },
                 { "name": "QUEIJO MUSSARELA", "amount": 40, "prot": 4, "fat": 4, "carb": 0, "kcal": 60 }
               ]
             },
             { "type": "plate", "name": "PREPARADO DE PASTA DE FRANGO COM REQUEIJÃO E CENOURA", "amount": 700, "prot": 84, "fat": 56, "carb": 25.2, "kcal": 476, "foods": [
-                { "name": "PEITO DE FRANGO", "amount": 300, "prot": 60, "fat": 24, "carb": 0, "kcal": 0 },
-                { "name": "REQUEIJÃO LIGHT", "amount": 200, "prot": 22, "fat": 32, "carb": 3.2, "kcal": 386 },
+                { "name": "PEITO DE FRANGO (Regina)", "amount": 300, "prot": 60, "fat": 24, "carb": 0, "kcal": 0 },
+                { "name": "REQUEIJÃO LIGHT (Betânia)", "amount": 200, "prot": 22, "fat": 32, "carb": 3.2, "kcal": 386 },
                 { "name": "CENOURA", "amount": 200, "prot": 2, "fat": 0, "carb": 22, "kcal": 90 }
               ]
             },
             { "type": "plate", "name": "SANDUÍCHE NATURAL COM PASTA DE FRANGO, REQUEIJÃO E CENOURA", "amount": 110, "prot": 11.7, "fat": 7, "carb": 27.16, "kcal": 178.8, "foods": [
                 { "name": "PREPARADO DE PASTA DE FRANGO COM REQUEIJÃO E CENOURA", "amount": 60, "prot": 7.2, "fat": 4.8, "carb": 2.16, "kcal": 40.8 },
-                { "name": "PÃO DE FORMA", "amount": 50, "prot": 4.5, "fat": 2.2, "carb": 25, "kcal": 138 }
+                { "name": "PÃO DE FORMA (Bauducco)", "amount": 50, "prot": 4.5, "fat": 2.2, "carb": 25, "kcal": 138 }
               ]
             },
             { "type": "plate", "name": "HAMBÚRGUER CASEIRO", "amount": 290, "prot": 40.7, "fat": 48.2, "carb": 27.36, "kcal": 651.6, "foods": [
-                { "name": "PÃO DE HAMBURGUER", "amount": 50, "prot": 3.5, "fat": 1, "carb": 27, "kcal": 131 },
-                { "name": "CARNE DE HAMBURGUER", "amount": 180, "prot": 31, "fat": 40, "carb": 0, "kcal": 482 },
+                { "name": "PÃO DE HAMBURGUER (RealPan)", "amount": 50, "prot": 3.5, "fat": 1, "carb": 27, "kcal": 131 },
+                { "name": "CARNE DE HAMBURGUER (Maturatta Friboi)", "amount": 180, "prot": 31, "fat": 40, "carb": 0, "kcal": 482 },
                 { "name": "QUEIJO MUSSARELA", "amount": 40, "prot": 4, "fat": 4, "carb": 0, "kcal": 60 },
-                { "name": "REQUEIJÃO LIGHT", "amount": 20, "prot": 2.2, "fat": 3.2, "carb": 0.36, "kcal": 38.6 }
+                { "name": "REQUEIJÃO LIGHT (Betânia)", "amount": 20, "prot": 2.2, "fat": 3.2, "carb": 0.36, "kcal": 38.6 }
               ]
             },
             { "type": "plate", "name": "OVOS FRITOS COM AZEITE", "amount": 2, "prot": 12, "fat": 22, "carb": 2, "kcal": 268, "foods": [
@@ -115,7 +125,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     let histSubMode = 'kcal';
     let histRefDate = today;
     let notifiedMeals = { date: today };
-
     let currentWeight = 70;
     let currentGCD = 2000;
 
@@ -144,9 +153,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 if(currentStr === remStr && !notifiedMeals[meal.name]) {
                     if (Notification.permission === 'granted') {
-                        new Notification("DietApp - Lembrete", {
-                            body: `Sua refeição "${meal.name}" está programada para as ${meal.time}.`,
-                        });
+                        new Notification("DietApp - Lembrete", { body: `Sua refeição "${meal.name}" está programada para as ${meal.time}.` });
                         notifiedMeals[meal.name] = true;
                     }
                 }
@@ -154,7 +161,63 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }, 60000);
 
-    let userData = await getData('Inf_1', 1);
+    // =========================================================
+    // SELETOR VERTICAL MOBILE-FRIENDLY E OBRIGATÓRIO
+    // =========================================================
+    window.openItemSelector = function(availableItems, callback) {
+        const overlay = document.createElement('div');
+        overlay.className = 'selector-overlay';
+        
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.placeholder = 'Pesquisar alimento ou prato...';
+        searchInput.className = 'selector-input';
+        
+        const listContainer = document.createElement('div');
+        listContainer.className = 'selector-list';
+        
+        const closeBtn = document.createElement('button');
+        closeBtn.innerText = "Cancelar";
+        closeBtn.className = "action-btn selector-btn";
+
+        overlay.appendChild(searchInput);
+        overlay.appendChild(listContainer);
+        overlay.appendChild(closeBtn);
+        document.body.appendChild(overlay);
+
+        setTimeout(() => searchInput.focus(), 100);
+
+        function renderList(query) {
+            listContainer.innerHTML = '';
+            const filtered = availableItems.filter(i => i.name.toLowerCase().includes(query.toLowerCase()));
+            if(filtered.length === 0) {
+                listContainer.innerHTML = '<p style="text-align:center; color:#777; margin-top: 20px;">Nenhum item encontrado.</p>';
+                return;
+            }
+            filtered.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'selector-item';
+                div.innerHTML = `<strong>${item.name}</strong><br><span style="font-size: 12px; color:#555;">${Math.round(item.amount)}g/ml | P: ${Math.round(item.prot)}g | C: ${Math.round(item.carb)}g | G: ${Math.round(item.fat)}g | ${Math.round(item.kcal)} kcal</span>`;
+                div.addEventListener('click', () => {
+                    document.body.removeChild(overlay);
+                    callback(item);
+                });
+                listContainer.appendChild(div);
+            });
+        }
+
+        renderList('');
+        searchInput.addEventListener('input', e => renderList(e.target.value));
+        closeBtn.addEventListener('click', () => document.body.removeChild(overlay));
+    };
+
+    let userData;
+    try {
+        userData = await getData('Inf_1', 1);
+    } catch(e) {
+        console.error("Erro ao ler DB", e);
+    }
+
     if (!userData) {
         document.getElementById('page-first-use').classList.add('screen-active');
         document.getElementById('bottom-nav').style.display = 'none';
@@ -183,28 +246,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     document.getElementById('btn-save-initial').addEventListener('click', async () => {
-        const name = document.getElementById('init-name').value;
-        const sex = document.getElementById('init-sex').value;
-        const birth = document.getElementById('init-birth').value;
-        const height = parseFloat(document.getElementById('init-height').value);
-        const weight = parseFloat(document.getElementById('init-weight').value);
-        const activity = parseFloat(document.getElementById('init-activity').value);
+        try {
+            const name = document.getElementById('init-name').value;
+            const sex = document.getElementById('init-sex').value;
+            const birth = document.getElementById('init-birth').value;
+            const height = parseFloat(document.getElementById('init-height').value);
+            const weight = parseFloat(document.getElementById('init-weight').value);
+            const activity = parseFloat(document.getElementById('init-activity').value);
 
-        if (!name || !sex || !birth || isNaN(height) || height <= 0 || isNaN(weight) || weight <= 0 || !activity) {
-            return alert("Preencha todos os campos. Peso e altura devem ser valores positivos.");
+            if (!name || !sex || !birth || isNaN(height) || height <= 0 || isNaN(weight) || weight <= 0 || isNaN(activity)) {
+                return alert("Preencha todos os campos corretamente. Peso e altura não podem ser negativos ou vazios.");
+            }
+
+            await saveData('Inf_1', { id: 1, name, sex, birth, height });
+            
+            let todayData = await getData('Inf_3', today) || { date: today, meals: [] };
+            todayData.weight = weight;
+            todayData.activityLevel = activity;
+            await saveData('Inf_3', todayData);
+
+            document.getElementById('page-first-use').classList.remove('screen-active');
+            document.getElementById('bottom-nav').style.display = 'flex';
+            document.getElementById('page-home').classList.add('screen-active');
+            loadHomePage();
+        } catch(e) {
+            alert("Erro ao salvar os dados iniciais. Tente novamente.");
+            console.error(e);
         }
-
-        await saveData('Inf_1', { id: 1, name, sex, birth, height });
-        
-        let todayData = await getData('Inf_3', today) || { date: today, meals: [] };
-        todayData.weight = weight;
-        todayData.activityLevel = activity;
-        await saveData('Inf_3', todayData);
-
-        document.getElementById('page-first-use').classList.remove('screen-active');
-        document.getElementById('bottom-nav').style.display = 'flex';
-        document.getElementById('page-home').classList.add('screen-active');
-        loadHomePage();
     });
 
     function calcAge(birthDateString) {
@@ -257,7 +325,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const container = document.getElementById('home-meals-container');
         container.innerHTML = ''; 
 
-        const tableColgroup = `<colgroup><col width="35%"><col width="15%"><col width="12.5%"><col width="12.5%"><col width="12.5%"><col width="12.5%"></colgroup>`;
+        const tableColgroup = `<colgroup><col width="30%"><col width="14%"><col width="14%"><col width="14%"><col width="14%"><col width="14%"></colgroup>`;
 
         if (todayData.meals && todayData.meals.length > 0) {
             todayData.meals.forEach((meal, mealIndex) => {
@@ -281,7 +349,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         </span>
                     </div>
                     <div class="meal-details" style="display: none; padding: 0; border: 1px solid #000; border-top: none;">
-                        <table class="macro-table" style="table-layout: fixed; width: 100%; border: none; font-size: 13px; margin: 0;">
+                        <table class="macro-table" style="table-layout: fixed; width: 100%; border: none; font-size: 11px; margin: 0;">
                             ${tableColgroup}
                             <thead><tr style="background: #eee;"><th>ALIMENTO</th><th>QTDE</th><th>PROT</th><th>CARB</th><th>GORD</th><th>KCAL</th></tr></thead>
                             <tbody>
@@ -366,20 +434,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
-        let datalist = document.getElementById('edit-meal-food-options');
-        if (!datalist) { datalist = document.createElement('datalist'); datalist.id = 'edit-meal-food-options'; document.body.appendChild(datalist); }
-        datalist.innerHTML = '';
-        availableFoods.forEach(f => { const opt = document.createElement('option'); opt.value = f.name; datalist.appendChild(opt); });
-
         const overlay = document.createElement('div');
-        overlay.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; display:flex; justify-content:center; align-items:center;";
+        overlay.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:3000; display:flex; justify-content:center; align-items:center;";
         
         const tableColgroup = `<colgroup><col width="30%"><col width="12%"><col width="11%"><col width="11%"><col width="11%"><col width="11%"><col width="14%"></colgroup>`;
         
         let rowsHtml = '';
         meal.foods.forEach((f, idx) => {
-            rowsHtml += `<tr>
-                <td><input type="text" list="edit-meal-food-options" class="em-f-name" value="${f.name}" style="width:100%;"></td>
+            const baseFood = availableFoods.find(af => af.name.toLowerCase() === f.name.toLowerCase());
+            let baseAmount = baseFood ? baseFood.amount : f.amount;
+            let baseProt = baseFood ? baseFood.prot : f.prot;
+            let baseCarb = baseFood ? baseFood.carb : f.carb;
+            let baseFat = baseFood ? baseFood.fat : f.fat;
+            let baseKcal = baseFood ? baseFood.kcal : f.kcal;
+
+            rowsHtml += `<tr data-base-amount="${baseAmount}" data-base-prot="${baseProt}" data-base-carb="${baseCarb}" data-base-fat="${baseFat}" data-base-kcal="${baseKcal}">
+                <td><div class="em-f-name-display" style="width:100%; padding:5px; border:1px solid #ccc; font-size:11px; cursor:pointer;">${f.name}</div></td>
                 <td><input type="number" class="em-f-qty" value="${Math.round(f.amount)}" style="width:100%;" min="1"></td>
                 <td class="em-f-prot">${Math.round(f.prot)}</td><td class="em-f-carb">${Math.round(f.carb)}</td>
                 <td class="em-f-fat">${Math.round(f.fat)}</td><td class="em-f-kcal">${Math.round(f.kcal)}</td>
@@ -388,7 +458,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         overlay.innerHTML = `
-            <div style="background:#fff; padding:20px; border: 2px solid #000; width:95%; max-width:600px; max-height:90vh; overflow-y:auto;">
+            <div style="background:#fff; padding:20px; border: 2px solid #000; width:95%; max-width:600px; max-height:90vh; overflow-y:auto; border-radius: 8px;">
                 <h3 style="text-align:center; margin-bottom:15px;">EDITAR REFEIÇÃO</h3>
                 <label style="display:block; margin-bottom:10px; font-weight:bold;">Nome: 
                     <select id="edit-m-name" style="width:100%; padding:5px; margin-top:5px;">${optionsHtml}</select>
@@ -396,14 +466,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <label style="display:block; margin-bottom:15px; font-weight:bold;">Horário: 
                     <input type="time" id="edit-m-time" value="${meal.time}" style="width:100%; padding:5px; margin-top:5px;">
                 </label>
-                <table class="macro-table" id="edit-meal-table" style="table-layout: fixed; width: 100%; font-size:12px;">
+                <table class="macro-table" id="edit-meal-table" style="table-layout: fixed; width: 100%; font-size:11px;">
                     ${tableColgroup}
                     <thead><tr><th>ALIMENTO</th><th>QTDE</th><th>PROT</th><th>CARB</th><th>GORD</th><th>KCAL</th><th></th></tr></thead>
                     <tbody>${rowsHtml}</tbody>
                 </table>
                 <div style="text-align:center; margin-top:10px;"><button id="em-add-row-btn" class="icon-btn"><i class="fa-solid fa-plus"></i></button></div>
                 <div style="display:flex; justify-content:space-between; margin-top:20px;">
-                    <button id="edit-m-cancel" style="padding:10px 15px;">Cancelar</button>
+                    <button id="edit-m-cancel" class="action-btn" style="width:auto; margin:0; padding:10px 15px;">Cancelar</button>
                     <button id="edit-m-save" class="action-btn" style="margin:0; width:60px;"><i class="fa-solid fa-check"></i></button>
                 </div>
             </div>
@@ -411,32 +481,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.body.appendChild(overlay);
 
         const bindRowEvents = (tr) => {
-            const nameInput = tr.querySelector('.em-f-name');
+            const nameDisplay = tr.querySelector('.em-f-name-display');
             const qtyInput = tr.querySelector('.em-f-qty');
             
-            // Tenta achar alimento base para aplicar regra de 3 (se já foi preenchido)
-            const baseFood = availableFoods.find(f => f.name.toLowerCase() === nameInput.value.toLowerCase());
-            if(baseFood) {
-                tr.dataset.baseAmount = baseFood.amount; tr.dataset.baseProt = baseFood.prot;
-                tr.dataset.baseCarb = baseFood.carb; tr.dataset.baseFat = baseFood.fat; tr.dataset.baseKcal = baseFood.kcal;
-            } else {
-                tr.dataset.baseAmount = 0; tr.dataset.baseProt = 0; tr.dataset.baseCarb = 0; tr.dataset.baseFat = 0; tr.dataset.baseKcal = 0;
-            }
-
-            nameInput.addEventListener('input', (e) => {
-                const food = availableFoods.find(f => f.name.toLowerCase() === e.target.value.toLowerCase());
-                if (food) {
-                    qtyInput.value = Math.round(food.amount);
-                    tr.dataset.baseAmount = food.amount; tr.dataset.baseProt = food.prot;
-                    tr.dataset.baseCarb = food.carb; tr.dataset.baseFat = food.fat; tr.dataset.baseKcal = food.kcal;
+            nameDisplay.addEventListener('click', () => {
+                window.openItemSelector(availableFoods, (selectedFood) => {
+                    nameDisplay.innerText = selectedFood.name;
+                    qtyInput.value = Math.round(selectedFood.amount);
+                    tr.dataset.baseAmount = selectedFood.amount;
+                    tr.dataset.baseProt = selectedFood.prot;
+                    tr.dataset.baseCarb = selectedFood.carb;
+                    tr.dataset.baseFat = selectedFood.fat;
+                    tr.dataset.baseKcal = selectedFood.kcal;
                     updateEmRowVisuals(tr, 1);
-                }
+                });
             });
 
             qtyInput.addEventListener('input', (e) => {
                 const baseAmount = parseFloat(tr.dataset.baseAmount);
                 const newAmount = parseFloat(e.target.value);
                 if (baseAmount > 0 && !isNaN(newAmount) && newAmount > 0) updateEmRowVisuals(tr, newAmount / baseAmount);
+                else updateEmRowVisuals(tr, 0);
             });
 
             tr.querySelector('.remove-em-row').addEventListener('click', () => tr.remove());
@@ -449,13 +514,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             tr.querySelector('.em-f-kcal').innerText = Math.round(parseFloat(tr.dataset.baseKcal) * ratio);
         }
 
-        // Binda eventos nas linhas iniciais
         overlay.querySelectorAll('#edit-meal-table tbody tr').forEach(bindRowEvents);
 
         document.getElementById('em-add-row-btn').addEventListener('click', () => {
             const tr = document.createElement('tr');
+            tr.dataset.baseAmount = 0; tr.dataset.baseProt = 0; tr.dataset.baseCarb = 0; tr.dataset.baseFat = 0; tr.dataset.baseKcal = 0;
             tr.innerHTML = `
-                <td><input type="text" list="edit-meal-food-options" class="em-f-name" style="width:100%;"></td>
+                <td><div class="em-f-name-display" style="width:100%; padding:5px; border:1px solid #ccc; font-size:11px; cursor:pointer;">Selecione...</div></td>
                 <td><input type="number" class="em-f-qty" style="width:100%;" min="1"></td>
                 <td class="em-f-prot">0</td><td class="em-f-carb">0</td><td class="em-f-fat">0</td><td class="em-f-kcal">0</td>
                 <td><i class="fa-solid fa-trash remove-em-row" style="color:red; cursor:pointer;"></i></td>
@@ -475,9 +540,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             let hasError = false;
 
             rows.forEach(tr => {
-                const name = tr.querySelector('.em-f-name').value;
+                const name = tr.querySelector('.em-f-name-display').innerText;
                 const qty = parseFloat(tr.querySelector('.em-f-qty').value);
-                if (name && name.trim() !== '') {
+                if (name !== 'Selecione...' && name.trim() !== '') {
                     if (isNaN(qty) || qty <= 0) hasError = true;
                     else {
                         foodsToSave.push({
@@ -489,8 +554,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             });
 
-            if (hasError) return alert('Por favor, informe quantidades maiores que zero para os alimentos.');
-            if (foodsToSave.length === 0) return alert('A refeição precisa de ao menos um alimento.');
+            if (hasError) return alert('Por favor, informe quantidades maiores que zero.');
+            if (foodsToSave.length === 0) return alert('A refeição precisa de ao menos um alimento válido.');
 
             meal.foods = foodsToSave;
             await saveData('Inf_3', todayData);
@@ -699,15 +764,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const now = new Date();
         document.getElementById('add-meal-time').value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-        let datalist = document.getElementById('food-options');
-        if (!datalist) { datalist = document.createElement('datalist'); datalist.id = 'food-options'; document.body.appendChild(datalist); }
-        datalist.innerHTML = '';
-        
-        availableFoods.forEach(f => {
-            const opt = document.createElement('option');
-            opt.value = f.name; datalist.appendChild(opt);
-        });
-
         document.getElementById('add-meal-tbody').innerHTML = '';
         addMealRow();
     }
@@ -715,24 +771,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     function addMealRow() {
         const tbody = document.getElementById('add-meal-tbody');
         const tr = document.createElement('tr');
+        tr.dataset.baseAmount = 0; tr.dataset.baseProt = 0; tr.dataset.baseCarb = 0; tr.dataset.baseFat = 0; tr.dataset.baseKcal = 0;
         tr.innerHTML = `
-            <td><input type="text" list="food-options" class="row-food-name" style="width:100%; box-sizing:border-box;"></td>
-            <td><input type="number" class="row-food-qty" style="width:100%;" min="1"></td>
+            <td><div class="row-food-name-display" style="width:100%; padding: 5px; border: 1px solid #ccc; background: #fff; cursor: pointer; font-size: 11px; min-height: 25px; display: flex; align-items: center;">Selecione...</div></td>
+            <td><input type="number" class="row-food-qty" style="width:100%; padding: 2px;" min="1"></td>
             <td class="row-prot">0</td><td class="row-carb">0</td><td class="row-fat">0</td><td class="row-kcal">0</td>
         `;
-        const nameInput = tr.querySelector('.row-food-name');
-        const qtyInput = tr.querySelector('.row-food-qty');
         
-        tr.dataset.baseAmount = 0; tr.dataset.baseProt = 0; tr.dataset.baseCarb = 0; tr.dataset.baseFat = 0; tr.dataset.baseKcal = 0;
+        const nameDisplay = tr.querySelector('.row-food-name-display');
+        const qtyInput = tr.querySelector('.row-food-qty');
 
-        nameInput.addEventListener('input', (e) => {
-            const food = availableFoods.find(f => f.name.toLowerCase() === e.target.value.toLowerCase());
-            if (food) {
-                qtyInput.value = Math.round(food.amount);
-                tr.dataset.baseAmount = food.amount; tr.dataset.baseProt = food.prot;
-                tr.dataset.baseCarb = food.carb; tr.dataset.baseFat = food.fat; tr.dataset.baseKcal = food.kcal;
+        nameDisplay.addEventListener('click', () => {
+            window.openItemSelector(availableFoods, (selectedFood) => {
+                nameDisplay.innerText = selectedFood.name;
+                qtyInput.value = Math.round(selectedFood.amount);
+                tr.dataset.baseAmount = selectedFood.amount;
+                tr.dataset.baseProt = selectedFood.prot;
+                tr.dataset.baseCarb = selectedFood.carb;
+                tr.dataset.baseFat = selectedFood.fat;
+                tr.dataset.baseKcal = selectedFood.kcal;
                 updateRowVisuals(tr, 1);
-            }
+            });
         });
 
         qtyInput.addEventListener('input', (e) => {
@@ -762,9 +821,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         let hasError = false;
 
         rows.forEach(tr => {
-            const name = tr.querySelector('.row-food-name').value;
+            const name = tr.querySelector('.row-food-name-display').innerText;
             const qty = parseFloat(tr.querySelector('.row-food-qty').value);
-            if (name && name.trim() !== '') {
+            if (name !== 'Selecione...' && name.trim() !== '') {
                 if (isNaN(qty) || qty <= 0) hasError = true;
                 else {
                     foodsToSave.push({
@@ -776,8 +835,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
-        if (hasError) return alert('Por favor, informe quantidades maiores que zero para os alimentos.');
-        if (foodsToSave.length === 0) return alert('Adicione ao menos um alimento.');
+        if (hasError) return alert('Por favor, informe quantidades maiores que zero e certifique-se de preencher todos os alimentos.');
+        if (foodsToSave.length === 0) return alert('Adicione ao menos um alimento válido.');
 
         let todayData = await getData('Inf_3', today) || { date: today, meals: [] };
         if (!todayData.meals) todayData.meals = [];
@@ -821,7 +880,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             let header = document.createElement('div');
             header.className = 'calendar-header';
-            header.innerHTML = `<span class="calendar-nav" id="cal-prev"><</span><span>${monthNames[month]} de ${year}</span><span class="calendar-nav" id="cal-next">></span>`;
+            
+            let yearSelect = document.createElement('select');
+            yearSelect.style.cssText = "border: none; font-size: 16px; font-weight: bold; background: transparent; cursor: pointer; outline: none; margin-left: 5px;";
+            for(let y=2020; y<=2035; y++){
+                let opt = document.createElement('option');
+                opt.value = y; opt.innerText = y;
+                if(y === year) opt.selected = true;
+                yearSelect.appendChild(opt);
+            }
+            yearSelect.addEventListener('change', (e) => {
+                renderCalendar(parseInt(e.target.value), 0); // Vai para janeiro do ano selecionado
+            });
+
+            let btnPrev = document.createElement('span'); btnPrev.innerHTML='<'; btnPrev.className='calendar-nav';
+            let btnNext = document.createElement('span'); btnNext.innerHTML='>'; btnNext.className='calendar-nav';
+            let centerCont = document.createElement('span');
+            centerCont.innerText = monthNames[month] + " de ";
+            centerCont.appendChild(yearSelect);
+
+            header.append(btnPrev, centerCont, btnNext);
             popup.appendChild(header);
 
             let grid = document.createElement('div');
@@ -887,11 +965,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if(e.target === overlay) document.body.removeChild(overlay);
             });
 
-            document.getElementById('cal-prev').addEventListener('click', () => {
+            btnPrev.addEventListener('click', () => {
                 let newDate = new Date(year, month - 1, 1);
                 renderCalendar(newDate.getFullYear(), newDate.getMonth());
             });
-            document.getElementById('cal-next').addEventListener('click', () => {
+            btnNext.addEventListener('click', () => {
                 let newDate = new Date(year, month + 1, 1);
                 renderCalendar(newDate.getFullYear(), newDate.getMonth());
             });
@@ -1009,7 +1087,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // =========================================================
-    // LÓGICA DA PÁGINA 5 (ALIMENTOS E PRATOS) COM FUNÇÕES GLOBAIS
+    // LÓGICA DA PÁGINA 5 (ALIMENTOS E PRATOS)
     // =========================================================
     let currentFoodTab = 'alimentos';
 
@@ -1025,7 +1103,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     window.delItemGlobal = async function(id, ev) {
         if(ev) ev.stopPropagation();
-        if(confirm("Tem certeza que deseja excluir permanentemente este item?")) {
+        if(confirm("Tem certeza que deseja excluir permanentemente este item da sua base de dados?")) {
             await window.deleteDataDb('Inf_2', id);
             loadFoodPage();
         }
@@ -1049,17 +1127,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (currentFoodTab === 'alimentos') {
             const foods = inf2.filter(i => i.type === 'food').sort((a,b) => a.name.localeCompare(b.name));
-            let html = `<table class="macro-table" style="table-layout: fixed; width: 100%;">${colGroupHTML}<thead><tr><th>NOME</th><th>QTDE</th><th>PROT</th><th>CARB</th><th>GORD</th><th>Kcal</th></tr></thead><tbody>`;
+            let html = `<div class="table-responsive"><table class="macro-table" style="table-layout: fixed; width: 100%; border:none; margin:0;">${colGroupHTML}<thead><tr><th>NOME</th><th>QTDE</th><th>PROT</th><th>CARB</th><th>GORD</th><th>Kcal</th></tr></thead><tbody>`;
             foods.forEach(f => {
                 html += `<tr>
                     <td>${f.name}<br>
-                        <i class="fa-solid fa-pencil" style="cursor:pointer; color:#555; margin-right:10px;" onclick="window.editItemGlobal(${f.id}, 'food', event)"></i>
-                        <i class="fa-solid fa-trash" style="cursor:pointer; color:red;" onclick="window.delItemGlobal(${f.id}, event)"></i>
+                        <i class="fa-solid fa-pencil" style="cursor:pointer; color:#555; margin-right:10px; margin-top:5px;" onclick="window.editItemGlobal(${f.id}, 'food', event)"></i>
+                        <i class="fa-solid fa-trash" style="cursor:pointer; color:red; margin-top:5px;" onclick="window.delItemGlobal(${f.id}, event)"></i>
                     </td>
                     <td>${f.amount}</td><td>${f.prot}</td><td>${f.carb}</td><td>${f.fat}</td><td>${f.kcal}</td>
                 </tr>`;
             });
-            html += `</tbody></table>
+            html += `</tbody></table></div>
                      <div style="position: fixed; bottom: 80px; right: 20px; display: flex; flex-direction: column; gap: 10px;">
                         <button class="fab-btn" id="search-food-btn" style="position: static;"><i class="fa-solid fa-magnifying-glass"></i></button>
                         <button class="fab-btn" id="add-food-btn" style="position: static;"><i class="fa-solid fa-plus"></i></button>
@@ -1071,22 +1149,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } else if (currentFoodTab === 'pratos') {
             const plates = inf2.filter(i => i.type === 'plate').sort((a,b) => a.name.localeCompare(b.name));
-            let html = `<table class="macro-table" style="table-layout: fixed; width: 100%;">${colGroupHTML}<thead><tr><th>NOME</th><th>QTDE</th><th>PROT</th><th>CARB</th><th>GORD</th><th>Kcal</th></tr></thead><tbody>`;
+            let html = `<div class="table-responsive"><table class="macro-table" style="table-layout: fixed; width: 100%; border:none; margin:0;">${colGroupHTML}<thead><tr><th>NOME</th><th>QTDE</th><th>PROT</th><th>CARB</th><th>GORD</th><th>Kcal</th></tr></thead><tbody>`;
             plates.forEach(p => {
                 html += `<tr style="background:#eee; cursor:pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'table-row' : 'none'">
                             <td><strong>${p.name}</strong><br>
-                                <i class="fa-solid fa-pencil" style="cursor:pointer; color:#555; margin-right:10px;" onclick="window.editItemGlobal(${p.id}, 'plate', event)"></i>
-                                <i class="fa-solid fa-trash" style="cursor:pointer; color:red;" onclick="window.delItemGlobal(${p.id}, event)"></i>
+                                <i class="fa-solid fa-pencil" style="cursor:pointer; color:#555; margin-right:10px; margin-top:5px;" onclick="window.editItemGlobal(${p.id}, 'plate', event)"></i>
+                                <i class="fa-solid fa-trash" style="cursor:pointer; color:red; margin-top:5px;" onclick="window.delItemGlobal(${p.id}, event)"></i>
                             </td>
                             <td>${Math.round(p.amount)}</td><td>${Math.round(p.prot)}</td><td>${Math.round(p.carb)}</td><td>${Math.round(p.fat)}</td><td>${Math.round(p.kcal)}</td>
                          </tr>
                          <tr style="display:none; border-bottom: 2px solid #000;"><td colspan="6" style="padding:0;">
-                            <table style="table-layout: fixed; width:100%; font-size:12px; background:#fff;">${colGroupHTML}
+                            <table style="table-layout: fixed; width:100%; font-size:12px; background:#fff; border:none; margin:0;">${colGroupHTML}
                                 ${p.foods.map(f => `<tr><td>${f.name}</td><td>${Math.round(f.amount)}</td><td>${Math.round(f.prot)}</td><td>${Math.round(f.carb)}</td><td>${Math.round(f.fat)}</td><td>${Math.round(f.kcal)}</td></tr>`).join('')}
                             </table>
                          </td></tr>`;
             });
-            html += `</tbody></table>
+            html += `</tbody></table></div>
                      <div style="position: fixed; bottom: 80px; right: 20px; display: flex; flex-direction: column; gap: 10px;">
                         <button class="fab-btn" id="search-plate-btn" style="position: static;"><i class="fa-solid fa-magnifying-glass"></i></button>
                         <button class="fab-btn" id="add-plate-btn" style="position: static;"><i class="fa-solid fa-plus"></i></button>
@@ -1106,9 +1184,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             if(meals.length === 0) meals.push({name:'', time:'', reminder:0}); 
             meals.forEach(m => {
                 html += `<tr>
-                            <td><input type="text" class="m-name" value="${m.name}" style="width:100%;"></td>
-                            <td><input type="time" class="m-time" value="${m.time}" style="width:100%;"></td>
-                            <td><select class="m-rem"><option value="0" ${m.reminder==0?'selected':''}>Sem lembrete</option><option value="5" ${m.reminder==5?'selected':''}>5 min antes</option><option value="10" ${m.reminder==10?'selected':''}>10 min antes</option><option value="15" ${m.reminder==15?'selected':''}>15 min antes</option></select></td>
+                            <td><input type="text" class="m-name" value="${m.name}" style="width:100%; border:1px solid #ccc; padding:5px;"></td>
+                            <td><input type="time" class="m-time" value="${m.time}" style="width:100%; border:1px solid #ccc; padding:5px;"></td>
+                            <td><select class="m-rem" style="border:1px solid #ccc; padding:5px;"><option value="0" ${m.reminder==0?'selected':''}>Sem lembrete</option><option value="5" ${m.reminder==5?'selected':''}>5 min antes</option><option value="10" ${m.reminder==10?'selected':''}>10 min antes</option><option value="15" ${m.reminder==15?'selected':''}>15 min antes</option></select></td>
                          </tr>`;
             });
             html += `</tbody></table>
@@ -1121,7 +1199,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('add-meal-row-btn').addEventListener('click', () => {
                 const tbody = document.getElementById('meal-config-table').querySelector('tbody');
                 const tr = document.createElement('tr');
-                tr.innerHTML = `<td><input type="text" class="m-name" style="width:100%;"></td><td><input type="time" class="m-time" style="width:100%;"></td><td><select class="m-rem"><option value="0">Sem lembrete</option><option value="5">5 min antes</option><option value="10">10 min antes</option><option value="15">15 min antes</option></select></td>`;
+                tr.innerHTML = `<td><input type="text" class="m-name" style="width:100%; border:1px solid #ccc; padding:5px;"></td><td><input type="time" class="m-time" style="width:100%; border:1px solid #ccc; padding:5px;"></td><td><select class="m-rem" style="border:1px solid #ccc; padding:5px;"><option value="0">Sem lembrete</option><option value="5">5 min antes</option><option value="10">10 min antes</option><option value="15">15 min antes</option></select></td>`;
                 tbody.appendChild(tr);
             });
 
@@ -1154,15 +1232,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         const colGroupHTML = `<colgroup><col width="30%"><col width="14%"><col width="14%"><col width="14%"><col width="14%"><col width="14%"></colgroup>`;
 
         const overlay = document.createElement('div');
-        overlay.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:4000; padding: 20px;";
+        overlay.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:4000; padding: 20px; box-sizing: border-box;";
         
         overlay.innerHTML = `
-            <div style="background:#fff; width:100%; height:100%; padding:20px; overflow-y:auto;">
+            <div style="background:#fff; width:100%; height:100%; padding:20px; overflow-y:auto; position: relative; border-radius: 8px;">
                 <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
                     <h3>PESQUISAR ${type === 'food' ? 'ALIMENTO' : 'PRATO'}</h3>
                     <i class="fa-solid fa-xmark close-search" style="cursor:pointer; font-size:24px;"></i>
                 </div>
-                <input type="text" id="search-input-box" placeholder="Digite para pesquisar..." style="width:100%; padding:10px; font-size:16px; margin-bottom:20px;">
+                <input type="text" id="search-input-box" placeholder="Digite para pesquisar..." style="width:100%; padding:15px; font-size:16px; margin-bottom:20px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box;">
                 <table class="macro-table" style="table-layout: fixed; width: 100%;">
                     ${colGroupHTML}
                     <thead><tr><th>NOME</th><th>QTDE</th><th>PROT</th><th>CARB</th><th>GORD</th><th>Kcal</th></tr></thead>
@@ -1180,19 +1258,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             filtered.forEach(item => {
                 tbody.innerHTML += `<tr>
                     <td><strong>${item.name}</strong><br>
-                        <i class="fa-solid fa-pencil" style="cursor:pointer; color:#555; margin-right:10px;" onclick="window.editItemGlobal(${item.id}, '${type}', event); document.body.removeChild(document.getElementById('search-overlay'));"></i>
-                        <i class="fa-solid fa-trash" style="cursor:pointer; color:red;" onclick="window.delItemGlobal(${item.id}, event); document.body.removeChild(document.getElementById('search-overlay'));"></i>
+                        <i class="fa-solid fa-pencil" style="cursor:pointer; color:#555; margin-right:10px; margin-top:5px;" onclick="window.editItemGlobal(${item.id}, '${type}', event); document.body.removeChild(document.getElementById('search-overlay'));"></i>
+                        <i class="fa-solid fa-trash" style="cursor:pointer; color:red; margin-top:5px;" onclick="window.delItemGlobal(${item.id}, event); document.body.removeChild(document.getElementById('search-overlay'));"></i>
                     </td>
                     <td>${Math.round(item.amount)}</td><td>${Math.round(item.prot)}</td><td>${Math.round(item.carb)}</td><td>${Math.round(item.fat)}</td><td>${Math.round(item.kcal)}</td>
                 </tr>`;
             });
         };
 
-        renderResults(''); // Inicial
-
-        document.getElementById('search-input-box').addEventListener('input', (e) => {
-            renderResults(e.target.value);
-        });
+        renderResults(''); 
+        document.getElementById('search-input-box').addEventListener('input', (e) => renderResults(e.target.value));
 
         overlay.querySelector('.close-search').addEventListener('click', () => {
             overlay.id = 'search-overlay'; 
@@ -1203,22 +1278,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function showFoodModal(foodData) {
         const overlay = document.createElement('div');
-        overlay.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:5000; display:flex; justify-content:center; align-items:center;";
+        overlay.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:5000; display:flex; justify-content:center; align-items:center;";
         overlay.innerHTML = `
-            <div style="background:#fff; padding:20px; border: 2px solid #000; width:95%;">
+            <div style="background:#fff; padding:20px; border: 2px solid #000; width:95%; border-radius: 8px;">
                 <h3 style="text-align:center; margin-bottom:15px;">${foodData ? 'EDITAR ALIMENTO' : 'REGISTRAR NOVO ALIMENTO'}</h3>
                 <div style="display:flex; flex-direction:column; gap:10px;">
-                    <label>Nome: <input type="text" id="modal-f-name" value="${foodData ? foodData.name : ''}" style="width:100%;"></label>
+                    <label>Nome: <input type="text" id="modal-f-name" value="${foodData ? foodData.name : ''}" style="width:100%; padding:8px; border:1px solid #ccc;"></label>
                     <div style="display:flex; gap:5px;">
-                        <label>Qtde: <input type="number" id="modal-f-qty" value="${foodData ? foodData.amount : ''}" style="width:100%;"></label>
-                        <label>Prot: <input type="number" id="modal-f-prot" value="${foodData ? foodData.prot : ''}" style="width:100%;"></label>
-                        <label>Carb: <input type="number" id="modal-f-carb" value="${foodData ? foodData.carb : ''}" style="width:100%;"></label>
-                        <label>Gord: <input type="number" id="modal-f-fat" value="${foodData ? foodData.fat : ''}" style="width:100%;"></label>
-                        <label>Kcal: <input type="number" id="modal-f-kcal" value="${foodData ? foodData.kcal : ''}" style="width:100%;"></label>
+                        <label>Qtde: <input type="number" id="modal-f-qty" value="${foodData ? foodData.amount : ''}" style="width:100%; padding:8px; border:1px solid #ccc;"></label>
+                        <label>Prot: <input type="number" id="modal-f-prot" value="${foodData ? foodData.prot : ''}" style="width:100%; padding:8px; border:1px solid #ccc;"></label>
+                        <label>Carb: <input type="number" id="modal-f-carb" value="${foodData ? foodData.carb : ''}" style="width:100%; padding:8px; border:1px solid #ccc;"></label>
+                        <label>Gord: <input type="number" id="modal-f-fat" value="${foodData ? foodData.fat : ''}" style="width:100%; padding:8px; border:1px solid #ccc;"></label>
+                        <label>Kcal: <input type="number" id="modal-f-kcal" value="${foodData ? foodData.kcal : ''}" style="width:100%; padding:8px; border:1px solid #ccc;"></label>
                     </div>
                 </div>
                 <div style="display:flex; justify-content:space-between; margin-top:20px;">
-                    <button id="modal-f-cancel" style="padding:10px;">Cancelar</button>
+                    <button id="modal-f-cancel" class="action-btn" style="margin:0; width:auto; padding:10px 15px;">Cancelar</button>
                     <button id="modal-f-save" class="action-btn" style="margin:0; width:60px;"><i class="fa-solid fa-check"></i></button>
                 </div>
             </div>`;
@@ -1249,62 +1324,60 @@ document.addEventListener('DOMContentLoaded', async () => {
         const inf2 = await getAllData('Inf_2') || [];
         availableFoods = inf2.filter(item => item.type === 'food'); 
 
-        let datalist = document.getElementById('plate-food-options');
-        if (!datalist) { datalist = document.createElement('datalist'); datalist.id = 'plate-food-options'; document.body.appendChild(datalist); }
-        datalist.innerHTML = '';
-        availableFoods.forEach(f => { const opt = document.createElement('option'); opt.value = f.name; datalist.appendChild(opt); });
-
         const overlay = document.createElement('div');
-        overlay.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:5000; display:flex; justify-content:center; align-items:center;";
+        overlay.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:5000; display:flex; justify-content:center; align-items:center;";
         
         const tableColgroup = `<colgroup><col width="30%"><col width="12%"><col width="11%"><col width="11%"><col width="11%"><col width="11%"><col width="14%"></colgroup>`;
         
         let initialRowsHTML = '';
         if(plateData && plateData.foods) {
             plateData.foods.forEach(f => {
-                initialRowsHTML += `<tr>
-                <td><input type="text" list="plate-food-options" class="p-f-name" value="${f.name}" style="width:100%;"></td>
+                const baseFood = availableFoods.find(af => af.name.toLowerCase() === f.name.toLowerCase());
+                let baseAmount = baseFood ? baseFood.amount : f.amount;
+                let baseProt = baseFood ? baseFood.prot : f.prot;
+                let baseCarb = baseFood ? baseFood.carb : f.carb;
+                let baseFat = baseFood ? baseFood.fat : f.fat;
+                let baseKcal = baseFood ? baseFood.kcal : f.kcal;
+
+                initialRowsHTML += `<tr data-base-amount="${baseAmount}" data-base-prot="${baseProt}" data-base-carb="${baseCarb}" data-base-fat="${baseFat}" data-base-kcal="${baseKcal}">
+                <td><div class="p-f-name-display" style="width:100%; padding:5px; border:1px solid #ccc; font-size:11px; cursor:pointer;">${f.name}</div></td>
                 <td><input type="number" class="p-f-qty" value="${f.amount}" style="width:100%;"></td><td class="p-f-prot">${f.prot}</td><td class="p-f-carb">${f.carb}</td><td class="p-f-fat">${f.fat}</td><td class="p-f-kcal">${f.kcal}</td>
                 <td><i class="fa-solid fa-trash remove-p-row" style="color:red; cursor:pointer;"></i></td></tr>`;
             });
         }
 
         overlay.innerHTML = `
-            <div style="background:#fff; padding:15px; border: 2px solid #000; width:95%; max-width:600px; max-height:90vh; overflow-y:auto;">
+            <div style="background:#fff; padding:15px; border: 2px solid #000; width:95%; max-width:600px; max-height:90vh; overflow-y:auto; border-radius:8px;">
                 <h3 style="text-align:center; margin-bottom:10px;">${plateData ? 'EDITAR PRATO' : 'REGISTRAR NOVO PRATO'}</h3>
-                <label>Nome do Prato: <input type="text" id="modal-p-name" value="${plateData ? plateData.name : ''}" style="width:100%; margin-bottom:10px;"></label>
-                <table class="macro-table" id="plate-foods-table" style="table-layout: fixed; width: 100%; font-size:12px;">
+                <label style="font-weight:bold;">Nome do Prato: <input type="text" id="modal-p-name" value="${plateData ? plateData.name : ''}" style="width:100%; margin-bottom:10px; padding:8px; border:1px solid #ccc;"></label>
+                <table class="macro-table" id="plate-foods-table" style="table-layout: fixed; width: 100%; font-size:11px;">
                     ${tableColgroup}
                     <thead><tr><th>ALIMENTO</th><th>QTDE</th><th>PROT</th><th>CARB</th><th>GORD</th><th>KCAL</th><th></th></tr></thead>
                     <tbody>${initialRowsHTML}</tbody>
                 </table>
                 <div style="text-align:center; margin-top:5px;"><button id="add-p-row-btn" class="icon-btn"><i class="fa-solid fa-plus"></i></button></div>
                 <div style="display:flex; justify-content:space-between; margin-top:15px;">
-                    <button id="modal-p-cancel" style="padding:10px;">Cancelar</button>
+                    <button id="modal-p-cancel" class="action-btn" style="width:auto; margin:0; padding:10px 15px;">Cancelar</button>
                     <button id="modal-p-save" class="action-btn" style="margin:0; width:60px;"><i class="fa-solid fa-check"></i></button>
                 </div>
             </div>`;
         document.body.appendChild(overlay);
 
         const bindPlateRowEvents = (tr) => {
-            const nameInput = tr.querySelector('.p-f-name');
+            const nameDisplay = tr.querySelector('.p-f-name-display');
             const qtyInput = tr.querySelector('.p-f-qty');
             
-            const baseFood = availableFoods.find(f => f.name.toLowerCase() === nameInput.value.toLowerCase());
-            if(baseFood) {
-                tr.dataset.baseAmount = baseFood.amount; tr.dataset.baseProt = baseFood.prot;
-                tr.dataset.baseCarb = baseFood.carb; tr.dataset.baseFat = baseFood.fat; tr.dataset.baseKcal = baseFood.kcal;
-            } else {
-                tr.dataset.baseAmount = 0; tr.dataset.baseProt = 0; tr.dataset.baseCarb = 0; tr.dataset.baseFat = 0; tr.dataset.baseKcal = 0;
-            }
-
-            nameInput.addEventListener('input', (e) => {
-                const food = availableFoods.find(f => f.name.toLowerCase() === e.target.value.toLowerCase());
-                if (food) {
-                    qtyInput.value = Math.round(food.amount);
-                    tr.dataset.baseAmount = food.amount; tr.dataset.baseProt = food.prot; tr.dataset.baseCarb = food.carb; tr.dataset.baseFat = food.fat; tr.dataset.baseKcal = food.kcal;
+            nameDisplay.addEventListener('click', () => {
+                window.openItemSelector(availableFoods, (selectedFood) => {
+                    nameDisplay.innerText = selectedFood.name;
+                    qtyInput.value = Math.round(selectedFood.amount);
+                    tr.dataset.baseAmount = selectedFood.amount;
+                    tr.dataset.baseProt = selectedFood.prot;
+                    tr.dataset.baseCarb = selectedFood.carb;
+                    tr.dataset.baseFat = selectedFood.fat;
+                    tr.dataset.baseKcal = selectedFood.kcal;
                     updatePlateRowVisuals(tr, 1);
-                }
+                });
             });
 
             qtyInput.addEventListener('input', (e) => {
@@ -1326,7 +1399,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if(!plateData || !plateData.foods) {
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td><input type="text" list="plate-food-options" class="p-f-name" style="width:100%;"></td><td><input type="number" class="p-f-qty" style="width:100%;"></td><td class="p-f-prot">0</td><td class="p-f-carb">0</td><td class="p-f-fat">0</td><td class="p-f-kcal">0</td><td><i class="fa-solid fa-trash remove-p-row" style="color:red; cursor:pointer;"></i></td>`;
+            tr.dataset.baseAmount = 0; tr.dataset.baseProt = 0; tr.dataset.baseCarb = 0; tr.dataset.baseFat = 0; tr.dataset.baseKcal = 0;
+            tr.innerHTML = `<td><div class="p-f-name-display" style="width:100%; padding:5px; border:1px solid #ccc; font-size:11px; cursor:pointer;">Selecione...</div></td><td><input type="number" class="p-f-qty" style="width:100%;"></td><td class="p-f-prot">0</td><td class="p-f-carb">0</td><td class="p-f-fat">0</td><td class="p-f-kcal">0</td><td><i class="fa-solid fa-trash remove-p-row" style="color:red; cursor:pointer;"></i></td>`;
             tbody.appendChild(tr);
             bindPlateRowEvents(tr);
         } else {
@@ -1335,7 +1409,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         document.getElementById('add-p-row-btn').addEventListener('click', () => {
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td><input type="text" list="plate-food-options" class="p-f-name" style="width:100%;"></td><td><input type="number" class="p-f-qty" style="width:100%;"></td><td class="p-f-prot">0</td><td class="p-f-carb">0</td><td class="p-f-fat">0</td><td class="p-f-kcal">0</td><td><i class="fa-solid fa-trash remove-p-row" style="color:red; cursor:pointer;"></i></td>`;
+            tr.dataset.baseAmount = 0; tr.dataset.baseProt = 0; tr.dataset.baseCarb = 0; tr.dataset.baseFat = 0; tr.dataset.baseKcal = 0;
+            tr.innerHTML = `<td><div class="p-f-name-display" style="width:100%; padding:5px; border:1px solid #ccc; font-size:11px; cursor:pointer;">Selecione...</div></td><td><input type="number" class="p-f-qty" style="width:100%;"></td><td class="p-f-prot">0</td><td class="p-f-carb">0</td><td class="p-f-fat">0</td><td class="p-f-kcal">0</td><td><i class="fa-solid fa-trash remove-p-row" style="color:red; cursor:pointer;"></i></td>`;
             tbody.appendChild(tr);
             bindPlateRowEvents(tr);
         });
@@ -1351,19 +1426,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             const rows = document.getElementById('plate-foods-table').querySelectorAll('tbody tr');
             
             rows.forEach(tr => {
-                const n = tr.querySelector('.p-f-name').value.trim();
+                const n = tr.querySelector('.p-f-name-display').innerText;
                 const q = parseFloat(tr.querySelector('.p-f-qty').value);
-                if(n && q > 0) {
-                    const p = parseFloat(tr.querySelector('.p-f-prot').innerText);
-                    const c = parseFloat(tr.querySelector('.p-f-carb').innerText);
-                    const f = parseFloat(tr.querySelector('.p-f-fat').innerText);
-                    const k = parseFloat(tr.querySelector('.p-f-kcal').innerText);
-                    foodsArray.push({name:n, amount:q, prot:p, carb:c, fat:f, kcal:k});
-                    sumAmount += q; sumProt += p; sumCarb += c; sumFat += f; sumKcal += k;
+                if (n !== 'Selecione...' && n.trim() !== '') {
+                    if(q > 0) {
+                        const p = parseFloat(tr.querySelector('.p-f-prot').innerText);
+                        const c = parseFloat(tr.querySelector('.p-f-carb').innerText);
+                        const f = parseFloat(tr.querySelector('.p-f-fat').innerText);
+                        const k = parseFloat(tr.querySelector('.p-f-kcal').innerText);
+                        foodsArray.push({name:n, amount:q, prot:p, carb:c, fat:f, kcal:k});
+                        sumAmount += q; sumProt += p; sumCarb += c; sumFat += f; sumKcal += k;
+                    }
                 }
             });
 
-            if(foodsArray.length === 0) return alert("Insira pelo menos um alimento ao prato.");
+            if(foodsArray.length === 0) return alert("Insira pelo menos um alimento válido ao prato.");
 
             const dataToSave = { type: 'plate', name: pName, amount: sumAmount, prot: sumProt, carb: sumCarb, fat: sumFat, kcal: sumKcal, foods: foodsArray };
             if(plateData) dataToSave.id = plateData.id;
@@ -1398,20 +1475,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         const act = todayData.activityLevel || 1.2;
 
         const overlay = document.createElement('div');
-        overlay.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; display:flex; justify-content:center; align-items:center;";
+        overlay.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:3000; display:flex; justify-content:center; align-items:center;";
         
         overlay.innerHTML = `
-            <div style="background:#fff; padding:20px; border: 2px solid #000; width:95%; max-height:90vh; overflow-y:auto;">
+            <div style="background:#fff; padding:20px; border: 2px solid #000; width:95%; max-height:90vh; overflow-y:auto; border-radius: 8px;">
                 <h3 style="text-align:center; margin-bottom:15px;">NOVA MEDIÇÃO: ${new Date().toLocaleDateString('pt-BR')}</h3>
                 <div style="display:flex; flex-direction:column; gap:10px;">
-                    <label>Peso (kg): <input type="number" id="mod-m-weight" value="${todayData.weight || ''}" step="0.1" style="width:100%;"></label>
-                    <label>Gordura Corporal (%): <input type="number" id="mod-m-bf" value="${todayData.bf || ''}" style="width:100%;"></label>
-                    <label>IMC: <input type="number" id="mod-m-imc" value="${todayData.imc || ''}" style="width:100%;"></label>
-                    <label>Músculo Esquelético (kg): <input type="number" id="mod-m-muscle" value="${todayData.muscle || ''}" style="width:100%;"></label>
-                    <label>Massa Gorda (kg): <input type="number" id="mod-m-fatmass" value="${todayData.massGorda || ''}" style="width:100%;"></label>
-                    <label>Água Corporal (kg): <input type="number" id="mod-m-water" value="${todayData.water || ''}" style="width:100%;"></label>
+                    <label>Peso (kg): <input type="number" id="mod-m-weight" value="${todayData.weight || ''}" step="0.1" style="width:100%; padding:8px; border:1px solid #ccc;"></label>
+                    <label>Gordura Corporal (%): <input type="number" id="mod-m-bf" value="${todayData.bf || ''}" style="width:100%; padding:8px; border:1px solid #ccc;"></label>
+                    <label>IMC: <input type="number" id="mod-m-imc" value="${todayData.imc || ''}" style="width:100%; padding:8px; border:1px solid #ccc;"></label>
+                    <label>Músculo Esquelético (kg): <input type="number" id="mod-m-muscle" value="${todayData.muscle || ''}" style="width:100%; padding:8px; border:1px solid #ccc;"></label>
+                    <label>Massa Gorda (kg): <input type="number" id="mod-m-fatmass" value="${todayData.massGorda || ''}" style="width:100%; padding:8px; border:1px solid #ccc;"></label>
+                    <label>Água Corporal (kg): <input type="number" id="mod-m-water" value="${todayData.water || ''}" style="width:100%; padding:8px; border:1px solid #ccc;"></label>
                     <label>Nível de atividade física:
-                        <select id="mod-m-activity" style="width:100%; padding: 5px; margin-top: 5px;">
+                        <select id="mod-m-activity" style="width:100%; padding: 8px; margin-top: 5px; border:1px solid #ccc;">
                             <option value="1.2" ${act == 1.2 ? 'selected' : ''}>Sedentário</option>
                             <option value="1.375" ${act == 1.375 ? 'selected' : ''}>Levemente Ativo</option>
                             <option value="1.55" ${act == 1.55 ? 'selected' : ''}>Moderadamente Ativo</option>
@@ -1421,7 +1498,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </label>
                 </div>
                 <div style="display:flex; justify-content:space-between; margin-top:20px;">
-                    <button id="mod-m-cancel" style="padding:10px;">Cancelar</button>
+                    <button id="mod-m-cancel" class="action-btn" style="width:auto; margin:0; padding:10px 15px;">Cancelar</button>
                     <button id="mod-m-save" class="action-btn" style="margin:0; width:60px;"><i class="fa-solid fa-check"></i></button>
                 </div>
             </div>`;
