@@ -1,7 +1,13 @@
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-body { background-color: #f5f5f5; padding-bottom: 70px; }
 
-/* Navegação inferior fixa */
+body, html { 
+    background-color: #f5f5f5; 
+    padding-bottom: 70px; 
+    overflow-x: hidden; 
+    width: 100%; 
+    margin: 0;
+}
+
 #bottom-nav {
     position: fixed; bottom: 0; left: 0; width: 100%; height: 60px;
     background: #fff; border-top: 1px solid #ccc;
@@ -10,27 +16,24 @@ body { background-color: #f5f5f5; padding-bottom: 70px; }
 .nav-btn { background: none; border: none; font-size: 24px; color: #555; cursor: pointer; width: 100%; height: 100%; }
 .nav-btn.active { color: #000; font-weight: bold; }
 
-/* Telas */
-.page { display: none; padding: 20px; }
+.page { display: none; padding: 12px; width: 100%; box-sizing: border-box; overflow-x: hidden; }
 .page.screen-active { display: block; }
-#page-first-use { background: #fff; height: 100vh; position: fixed; top:0; left:0; width:100%; z-index: 2000; overflow-y: auto;}
+#page-first-use { background: #fff; height: 100vh; position: fixed; top:0; left:0; width:100%; z-index: 2000; overflow-y: auto; overflow-x: hidden; padding: 20px;}
 
-/* Tipografia e cores */
 .header-title { text-align: center; font-size: 20px; margin-bottom: 10px; }
 .warning-text { color: red; font-size: 12px; text-align: center; margin-bottom: 20px; }
 .cursive-text { font-family: "Comic Sans MS", cursive, sans-serif; }
 .center-title { text-align: center; font-size: 18px; margin-bottom: 20px; }
 .top-left-title { font-size: 18px; margin-bottom: 15px; }
 
-/* Formulários */
-.form-block { margin-left: 10px; }
-.form-block label { display: block; margin-bottom: 15px; font-weight: bold; }
-.form-block input, .form-block select { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; }
-.primary-btn, .action-btn, .calc-btn { background: #e0e0e0; border: 1px solid #999; padding: 10px 15px; border-radius: 5px; cursor: pointer; display: block; margin: 10px auto; width: 90%; text-align: center; font-weight: bold;}
+.form-block { margin-left: 0; width: 100%; }
+.form-block label { display: block; margin-bottom: 15px; font-weight: bold; font-size: 14px;}
+.form-block input, .form-block select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; box-sizing: border-box; border-radius: 5px;}
+.primary-btn, .action-btn, .calc-btn { background: #e0e0e0; border: 1px solid #999; padding: 12px 15px; border-radius: 5px; cursor: pointer; display: block; margin: 15px auto; width: 100%; text-align: center; font-weight: bold;}
 .fab-btn { position: fixed; bottom: 80px; right: 20px; width: 50px; height: 50px; border-radius: 25%; background: #fff; border: 2px solid #000; font-size: 24px; cursor: pointer; z-index: 500;}
 
-/* Barras de progresso Pág 1 */
 .summary-block { margin-top: 20px; }
+.meals-list-block { margin-top: 40px; }
 .progress-container { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
 .progress-bar-bg { position: relative; width: 100%; height: 30px; border: 1px solid #000; background: #fff; overflow: hidden; }
 .progress-fill { height: 100%; width: 0%; transition: width 0.3s; }
@@ -38,58 +41,45 @@ body { background-color: #f5f5f5; padding-bottom: 70px; }
 .black-fill { background-color: #555; }
 .blue-fill { background-color: #4da6ff; }
 .yellow-fill { background-color: #ffcc00; }
-.bar-text { position: absolute; top: 5px; font-weight: bold; font-size: 14px; z-index: 2; }
-.bar-text.left { left: 5px; }
-.bar-text.right { right: 5px; }
+.bar-text { position: absolute; top: 6px; font-weight: bold; font-size: 14px; z-index: 2; }
+.bar-text.left { left: 8px; }
+.bar-text.right { right: 8px; }
 
-/* Tabelas e grids */
 .goals-table { width: 100%; border-collapse: collapse; }
-.goals-table td { padding: 8px; border-bottom: 1px solid #eee; }
-.goals-table input { width: 80px; padding: 5px; }
-.macro-table { width: 100%; border-collapse: collapse; margin-top: 20px; border: 1px solid #000; }
-.macro-table th, .macro-table td { border: 1px solid #000; padding: 5px; text-align: center; }
-.history-data-grid { display: flex; justify-content: space-between; margin-top: 15px; font-size: 12px; }
-.history-icons { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; }
-.chart-container { background: #fff; border: 1px solid #000; padding: 10px; height: 250px; }
+.goals-table td { padding: 10px 2px; border-bottom: 1px solid #eee; font-size: 14px; }
+.goals-table input { width: 60px; padding: 6px; border-radius: 4px; border: 1px solid #ccc;}
 
-/* Abas */
+.table-responsive { width: 100%; max-height: 60vh; overflow-y: auto; overflow-x: hidden; border: 1px solid #000; background: #fff;}
+.macro-table { width: 100%; border-collapse: collapse; margin: 0; background: #fff; table-layout: fixed; word-wrap: break-word; font-size: 12px;}
+.macro-table th, .macro-table td { border: 1px solid #ccc; padding: 6px; text-align: center; }
+.table-responsive th { position: sticky; top: 0; background: #eee; z-index: 10; box-shadow: 0 2px 2px rgba(0,0,0,0.1); border: 1px solid #000; color: #000;}
+
+.history-data-grid { display: flex; justify-content: space-between; margin-top: 15px; font-size: 13px; }
+.history-icons { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; }
+.chart-container { background: #fff; border: 1px solid #000; padding: 10px; height: 250px; width: 100%; box-sizing: border-box;}
+
 .submenu-tabs { display: flex; border-bottom: 2px solid #000; }
-.tab-btn { flex: 1; padding: 10px; border: none; background: transparent; cursor: pointer; font-weight: bold; }
+.tab-btn { flex: 1; padding: 12px 5px; border: none; background: transparent; cursor: pointer; font-weight: bold; font-size: 14px;}
 .tab-btn.active { border: 2px solid #000; border-bottom: none; background: #fff; }
 .tab-content { display: none; padding: 15px 0; }
 .tab-content.active { display: block; }
 
-/* ========================================================= */
-/* CALENDÁRIO CUSTOMIZADO (PÁGINA 4)                         */
-/* ========================================================= */
-.calendar-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.5); z-index: 3000;
-    display: flex; justify-content: center; align-items: center;
-}
-.calendar-popup {
-    background: #fff; border: 2px solid #000; width: 90%; padding: 20px 10px;
-}
-.calendar-header {
-    display: flex; justify-content: space-between; align-items: center;
-    font-size: 18px; font-weight: bold; margin-bottom: 20px;
-}
-.calendar-nav {
-    cursor: pointer; padding: 5px 15px; font-size: 20px;
-}
-.calendar-grid {
-    display: grid; grid-template-columns: repeat(7, 1fr);
-    text-align: center; row-gap: 15px; column-gap: 5px;
-}
-.calendar-day-header {
-    font-weight: bold; font-size: 14px; margin-bottom: 5px;
-}
-.calendar-day-header:first-child { color: red; } /* Domingo em vermelho */
-.calendar-day {
-    font-size: 16px; display: flex; justify-content: center; align-items: center;
-    width: 35px; height: 35px; margin: 0 auto; cursor: pointer; border-radius: 50%;
-}
+.calendar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; display: flex; justify-content: center; align-items: center; }
+.calendar-popup { background: #fff; border: 2px solid #000; width: 90%; max-width: 400px; padding: 20px 10px; border-radius: 8px;}
+.calendar-header { display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: bold; margin-bottom: 20px; }
+.calendar-nav { cursor: pointer; padding: 5px 15px; font-size: 20px; }
+.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; row-gap: 15px; column-gap: 2px; }
+.calendar-day-header { font-weight: bold; font-size: 12px; margin-bottom: 5px; }
+.calendar-day-header:first-child { color: red; } 
+.calendar-day { font-size: 14px; display: flex; justify-content: center; align-items: center; width: 32px; height: 32px; margin: 0 auto; cursor: pointer; border-radius: 50%; }
 .calendar-day.sunday { color: red; }
 .calendar-day.empty { cursor: default; }
 .calendar-day.has-data { border: 2px solid #000; }
 .calendar-day.selected { background: #000; color: #fff !important; }
+
+.selector-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; }
+.selector-input { width: 100%; padding: 15px; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; margin-bottom: 10px; box-sizing: border-box; }
+.selector-list { flex: 1; overflow-y: auto; background: #fff; border-radius: 5px; padding: 0; box-sizing: border-box; }
+.selector-item { padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; }
+.selector-item:hover { background: #f9f9f9; }
+.selector-btn { margin-top: 10px; width: 100%; }
