@@ -1,14 +1,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+body { background-color: #f5f5f5; padding-bottom: 70px; }
 
-/* FIX 3: Enquadramento e bloqueio horizontal no mobile */
-body, html { 
-    background-color: #f5f5f5; 
-    padding-bottom: 70px; 
-    overflow-x: hidden; 
-    width: 100vw; 
-    max-width: 100%;
-}
-
+/* Navegação inferior fixa */
 #bottom-nav {
     position: fixed; bottom: 0; left: 0; width: 100%; height: 60px;
     background: #fff; border-top: 1px solid #ccc;
@@ -17,22 +10,26 @@ body, html {
 .nav-btn { background: none; border: none; font-size: 24px; color: #555; cursor: pointer; width: 100%; height: 100%; }
 .nav-btn.active { color: #000; font-weight: bold; }
 
-.page { display: none; padding: 20px; width: 100%; max-width: 100%; overflow-x: hidden; }
+/* Telas */
+.page { display: none; padding: 20px; }
 .page.screen-active { display: block; }
-#page-first-use { background: #fff; height: 100vh; position: fixed; top:0; left:0; width:100%; z-index: 2000; overflow-y: auto; overflow-x: hidden;}
+#page-first-use { background: #fff; height: 100vh; position: fixed; top:0; left:0; width:100%; z-index: 2000; overflow-y: auto;}
 
+/* Tipografia e cores */
 .header-title { text-align: center; font-size: 20px; margin-bottom: 10px; }
 .warning-text { color: red; font-size: 12px; text-align: center; margin-bottom: 20px; }
 .cursive-text { font-family: "Comic Sans MS", cursive, sans-serif; }
 .center-title { text-align: center; font-size: 18px; margin-bottom: 20px; }
 .top-left-title { font-size: 18px; margin-bottom: 15px; }
 
-.form-block { margin-left: 10px; padding-right: 10px; }
+/* Formulários */
+.form-block { margin-left: 10px; }
 .form-block label { display: block; margin-bottom: 15px; font-weight: bold; }
 .form-block input, .form-block select { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; }
 .primary-btn, .action-btn, .calc-btn { background: #e0e0e0; border: 1px solid #999; padding: 10px 15px; border-radius: 5px; cursor: pointer; display: block; margin: 10px auto; width: 90%; text-align: center; font-weight: bold;}
 .fab-btn { position: fixed; bottom: 80px; right: 20px; width: 50px; height: 50px; border-radius: 25%; background: #fff; border: 2px solid #000; font-size: 24px; cursor: pointer; z-index: 500;}
 
+/* Barras de progresso Pág 1 */
 .summary-block { margin-top: 20px; }
 .progress-container { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
 .progress-bar-bg { position: relative; width: 100%; height: 30px; border: 1px solid #000; background: #fff; overflow: hidden; }
@@ -45,45 +42,54 @@ body, html {
 .bar-text.left { left: 5px; }
 .bar-text.right { right: 5px; }
 
+/* Tabelas e grids */
 .goals-table { width: 100%; border-collapse: collapse; }
-.goals-table td { padding: 8px 2px; border-bottom: 1px solid #eee; font-size: 14px; }
-.goals-table input { width: 60px; padding: 5px; }
-
-.macro-table { width: 100%; border-collapse: collapse; margin-top: 20px; border: 1px solid #000; background: #fff;}
-.macro-table th, .macro-table td { border: 1px solid #000; padding: 5px; text-align: center; word-wrap: break-word; }
-
-/* FIX 5: Cabeçalho da tabela fixo na rolagem */
-.macro-table th { position: sticky; top: 0; background: #eee; z-index: 10; outline: 1px solid #000; }
-
+.goals-table td { padding: 8px; border-bottom: 1px solid #eee; }
+.goals-table input { width: 80px; padding: 5px; }
+.macro-table { width: 100%; border-collapse: collapse; margin-top: 20px; border: 1px solid #000; }
+.macro-table th, .macro-table td { border: 1px solid #000; padding: 5px; text-align: center; }
 .history-data-grid { display: flex; justify-content: space-between; margin-top: 15px; font-size: 12px; }
 .history-icons { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; }
 .chart-container { background: #fff; border: 1px solid #000; padding: 10px; height: 250px; }
 
+/* Abas */
 .submenu-tabs { display: flex; border-bottom: 2px solid #000; }
-.tab-btn { flex: 1; padding: 10px 5px; border: none; background: transparent; cursor: pointer; font-weight: bold; font-size: 14px;}
+.tab-btn { flex: 1; padding: 10px; border: none; background: transparent; cursor: pointer; font-weight: bold; }
 .tab-btn.active { border: 2px solid #000; border-bottom: none; background: #fff; }
 .tab-content { display: none; padding: 15px 0; }
 .tab-content.active { display: block; }
 
-/* CALENDÁRIO CUSTOMIZADO */
-.calendar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; display: flex; justify-content: center; align-items: center; }
-.calendar-popup { background: #fff; border: 2px solid #000; width: 90%; max-width: 400px; padding: 20px 10px; }
-.calendar-header { display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: bold; margin-bottom: 20px; }
-.calendar-nav { cursor: pointer; padding: 5px 15px; font-size: 20px; }
-.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; row-gap: 15px; column-gap: 2px; }
-.calendar-day-header { font-weight: bold; font-size: 12px; margin-bottom: 5px; }
-.calendar-day-header:first-child { color: red; } 
-.calendar-day { font-size: 14px; display: flex; justify-content: center; align-items: center; width: 32px; height: 32px; margin: 0 auto; cursor: pointer; border-radius: 50%; }
+/* ========================================================= */
+/* CALENDÁRIO CUSTOMIZADO (PÁGINA 4)                         */
+/* ========================================================= */
+.calendar-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5); z-index: 3000;
+    display: flex; justify-content: center; align-items: center;
+}
+.calendar-popup {
+    background: #fff; border: 2px solid #000; width: 90%; padding: 20px 10px;
+}
+.calendar-header {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 18px; font-weight: bold; margin-bottom: 20px;
+}
+.calendar-nav {
+    cursor: pointer; padding: 5px 15px; font-size: 20px;
+}
+.calendar-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    text-align: center; row-gap: 15px; column-gap: 5px;
+}
+.calendar-day-header {
+    font-weight: bold; font-size: 14px; margin-bottom: 5px;
+}
+.calendar-day-header:first-child { color: red; } /* Domingo em vermelho */
+.calendar-day {
+    font-size: 16px; display: flex; justify-content: center; align-items: center;
+    width: 35px; height: 35px; margin: 0 auto; cursor: pointer; border-radius: 50%;
+}
 .calendar-day.sunday { color: red; }
 .calendar-day.empty { cursor: default; }
 .calendar-day.has-data { border: 2px solid #000; }
 .calendar-day.selected { background: #000; color: #fff !important; }
-
-/* FIX 2: AUTOCOMPLETE CUSTOMIZADO MOBILE-FRIENDLY */
-.autocomplete-items {
-    position: absolute; border: 1px solid #d4d4d4; z-index: 9999;
-    top: 100%; left: 0; right: 0; max-height: 180px; overflow-y: auto;
-    background-color: #fff; box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
-}
-.autocomplete-items div { padding: 10px; cursor: pointer; border-bottom: 1px solid #d4d4d4; font-size: 13px; text-align: left;}
-.autocomplete-items div:hover { background-color: #e9e9e9; }
