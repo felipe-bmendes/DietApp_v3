@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await initDB();
     
-    // Função auxiliar para deletar do banco
     window.deleteDataDb = function(storeName, id) {
         return new Promise((resolve, reject) => {
             const transaction = db.transaction([storeName], 'readwrite');
@@ -17,36 +16,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // =========================================================
-    // INJEÇÃO AUTOMÁTICA DE ALIMENTOS
+    // INJEÇÃO AUTOMÁTICA DE ALIMENTOS COM MARCAS
     // =========================================================
     let inf2Check = await getAllData('Inf_2');
     if (!inf2Check || inf2Check.length === 0) {
         const PRELOAD_DATA = [
-            { "type": "food", "name": "PEITO DE FRANGO", "amount": 100.0, "prot": 20.0, "fat": 8.0, "carb": 0.0, "kcal": 160.0 },
+            { "type": "food", "name": "PEITO DE FRANGO (Regina)", "amount": 100.0, "prot": 20.0, "fat": 8.0, "carb": 0.0, "kcal": 160.0 },
             { "type": "food", "name": "CARNE DE BOI COZIDA", "amount": 100.0, "prot": 28.0, "fat": 11.0, "carb": 0.0, "kcal": 207.0 },
             { "type": "food", "name": "PEITO DE PORCO ASSADA", "amount": 100.0, "prot": 24.0, "fat": 33.0, "carb": 0.0, "kcal": 393.0 },
             { "type": "food", "name": "BATA DOCE", "amount": 100.0, "prot": 0.6, "fat": 0.1, "carb": 20.0, "kcal": 77.0 },
             { "type": "food", "name": "INHAME", "amount": 80.0, "prot": 0.6, "fat": 0.1, "carb": 20.0, "kcal": 77.0 },
-            { "type": "food", "name": "QUEIJO MINAS", "amount": 30.0, "prot": 6.0, "fat": 6.0, "carb": 0.0, "kcal": 80.0 },
+            { "type": "food", "name": "QUEIJO MINAS (Betânia)", "amount": 30.0, "prot": 6.0, "fat": 6.0, "carb": 0.0, "kcal": 80.0 },
             { "type": "food", "name": "QUEIJO MUSSARELA", "amount": 40.0, "prot": 4.0, "fat": 4.0, "carb": 0.0, "kcal": 60.0 },
-            { "type": "food", "name": "ARROZ BRANCO CRU", "amount": 50.0, "prot": 3.7, "fat": 0.5, "carb": 40.0, "kcal": 177.0 },
-            { "type": "food", "name": "ARROZ BRANCO COZIDO", "amount": 300.0, "prot": 6.0, "fat": 0.0, "carb": 84.0, "kcal": 360.0 },
-            { "type": "food", "name": "FEIJÃO CARIOCA", "amount": 40.0, "prot": 9.0, "fat": 0.0, "carb": 24.0, "kcal": 135.0 },
-            { "type": "food", "name": "FEIJÃO PRETO", "amount": 60.0, "prot": 12.0, "fat": 1.3, "carb": 20.0, "kcal": 136.0 },
-            { "type": "food", "name": "FEIJÃO COZIDO", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 22.0, "kcal": 0.0 },
+            { "type": "food", "name": "ARROZ BRANCO CRU (Tio Urbano)", "amount": 50.0, "prot": 3.7, "fat": 0.5, "carb": 40.0, "kcal": 177.0 },
+            { "type": "food", "name": "ARROZ BRANCO COZIDO (Tio Urbano)", "amount": 300.0, "prot": 6.0, "fat": 0.0, "carb": 84.0, "kcal": 360.0 },
+            { "type": "food", "name": "FEIJÃO CARIOCA (Precioso)", "amount": 40.0, "prot": 9.0, "fat": 0.0, "carb": 24.0, "kcal": 135.0 },
+            { "type": "food", "name": "FEIJÃO PRETO (Camil)", "amount": 60.0, "prot": 12.0, "fat": 1.3, "carb": 20.0, "kcal": 136.0 },
+            { "type": "food", "name": "FEIJÃO COZIDO (Camil)", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 22.0, "kcal": 0.0 },
             { "type": "food", "name": "BISTECA DE PORCO", "amount": 100.0, "prot": 30.0, "fat": 17.0, "carb": 0.0, "kcal": 280.0 },
-            { "type": "food", "name": "CARNE DE HAMBURGUER", "amount": 180.0, "prot": 31.0, "fat": 40.0, "carb": 0.0, "kcal": 482.0 },
-            { "type": "food", "name": "CARNE DE SOL COM CEBOLA", "amount": 100.0, "prot": 19.0, "fat": 18.0, "carb": 2.8, "kcal": 240.0 },
-            { "type": "food", "name": "COXAS DE FRANGO", "amount": 100.0, "prot": 16.0, "fat": 7.2, "carb": 1.3, "kcal": 134.0 },
+            { "type": "food", "name": "CARNE DE HAMBURGUER (Maturatta Friboi)", "amount": 180.0, "prot": 31.0, "fat": 40.0, "carb": 0.0, "kcal": 482.0 },
+            { "type": "food", "name": "CARNE DE SOL COM CEBOLA (ProntoCarne)", "amount": 100.0, "prot": 19.0, "fat": 18.0, "carb": 2.8, "kcal": 240.0 },
+            { "type": "food", "name": "COXAS DE FRANGO (Perdigão)", "amount": 100.0, "prot": 16.0, "fat": 7.2, "carb": 1.3, "kcal": 134.0 },
             { "type": "food", "name": "OVO", "amount": 1.0, "prot": 6.0, "fat": 5.0, "carb": 1.0, "kcal": 80.0 },
             { "type": "food", "name": "AZEITE", "amount": 13.0, "prot": 0.0, "fat": 12.0, "carb": 0.0, "kcal": 108.0 },
-            { "type": "food", "name": "LEITE INTEGRAL", "amount": 200.0, "prot": 6.0, "fat": 6.0, "carb": 10.0, "kcal": 118.0 },
+            { "type": "food", "name": "LEITE INTEGRAL (Maranguape)", "amount": 200.0, "prot": 6.0, "fat": 6.0, "carb": 10.0, "kcal": 118.0 },
             { "type": "food", "name": "BANANA", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 25.0, "kcal": 100.0 },
-            { "type": "food", "name": "WHEY HIPERCALÓRICO", "amount": 120.0, "prot": 80.0, "fat": 2.5, "carb": 30.0, "kcal": 462.5 },
-            { "type": "food", "name": "(TOP) HIPERCALÓRICO", "amount": 45.0, "prot": 12.0, "fat": 1.25, "carb": 28.5, "kcal": 173.5 },
-            { "type": "food", "name": "WHEY 80%", "amount": 30.0, "prot": 23.0, "fat": 2.0, "carb": 3.4, "kcal": 124.0 },
-            { "type": "food", "name": "TAPIOCA", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 85.0, "kcal": 340.0 },
-            { "type": "food", "name": "MACARRÃO CRU", "amount": 80.0, "prot": 9.8, "fat": 1.0, "carb": 57.0, "kcal": 276.0 },
+            { "type": "food", "name": "WHEY HIPERCALÓRICO (Integral Medica)", "amount": 120.0, "prot": 80.0, "fat": 2.5, "carb": 30.0, "kcal": 462.5 },
+            { "type": "food", "name": "(TOP) HIPERCALÓRICO (Growth)", "amount": 45.0, "prot": 12.0, "fat": 1.25, "carb": 28.5, "kcal": 173.5 },
+            { "type": "food", "name": "WHEY 80% (Growth)", "amount": 30.0, "prot": 23.0, "fat": 2.0, "carb": 3.4, "kcal": 124.0 },
+            { "type": "food", "name": "TAPIOCA (Gosto Mineiro)", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 85.0, "kcal": 340.0 },
+            { "type": "food", "name": "MACARRÃO CRU (Fortaleza)", "amount": 80.0, "prot": 9.8, "fat": 1.0, "carb": 57.0, "kcal": 276.0 },
             { "type": "food", "name": "MACARRÃO COZIDO", "amount": 100.0, "prot": 4.9, "fat": 0.5, "carb": 28.5, "kcal": 0.0 },
             { "type": "food", "name": "BRÓCOLIS", "amount": 100.0, "prot": 3.0, "fat": 0.0, "carb": 5.0, "kcal": 20.0 },
             { "type": "food", "name": "MAÇÃ", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 15.0, "kcal": 60.0 },
@@ -59,42 +58,44 @@ document.addEventListener('DOMContentLoaded', async () => {
             { "type": "food", "name": "MORANGO", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 8.0, "kcal": 32.0 },
             { "type": "food", "name": "MELÃO", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 7.0, "kcal": 28.0 },
             { "type": "food", "name": "LIMÃO", "amount": 100.0, "prot": 0.0, "fat": 0.0, "carb": 4.0, "kcal": 16.0 },
-            { "type": "food", "name": "LEITE EM PÓ DESNATADO", "amount": 20.0, "prot": 7.0, "fat": 0.0, "carb": 10.0, "kcal": 68.0 },
-            { "type": "food", "name": "LEITE EM PÓ INTEGRAL", "amount": 25.0, "prot": 6.4, "fat": 6.7, "carb": 9.4, "kcal": 124.0 },
+            { "type": "food", "name": "LEITE EM PÓ DESNATADO (Itambé)", "amount": 20.0, "prot": 7.0, "fat": 0.0, "carb": 10.0, "kcal": 68.0 },
+            { "type": "food", "name": "LEITE EM PÓ INTEGRAL (Nestlé)", "amount": 25.0, "prot": 6.4, "fat": 6.7, "carb": 9.4, "kcal": 124.0 },
             { "type": "food", "name": "AVEIA", "amount": 100.0, "prot": 14.0, "fat": 6.0, "carb": 67.0, "kcal": 374.0 },
             { "type": "food", "name": "CENOURA", "amount": 100.0, "prot": 1.0, "fat": 0.0, "carb": 11.0, "kcal": 45.0 },
-            { "type": "food", "name": "IOGURTE NATURAL", "amount": 170.0, "prot": 6.8, "fat": 7.0, "carb": 6.8, "kcal": 117.0 },
-            { "type": "food", "name": "PÃO TORTILHA RAP10", "amount": 33.0, "prot": 2.72, "fat": 2.31, "carb": 14.85, "kcal": 90.75 },
-            { "type": "food", "name": "PÃO INTEGRAL", "amount": 50.0, "prot": 4.6, "fat": 1.8, "carb": 22.0, "kcal": 123.0 },
-            { "type": "food", "name": "PÃO DE FORMA", "amount": 50.0, "prot": 4.5, "fat": 2.2, "carb": 25.0, "kcal": 138.0 },
-            { "type": "food", "name": "PÃO DE HAMBURGUER", "amount": 50.0, "prot": 3.5, "fat": 1.0, "carb": 27.0, "kcal": 131.0 },
-            { "type": "food", "name": "REQUEIJÃO LIGHT", "amount": 100.0, "prot": 11.0, "fat": 16.0, "carb": 1.8, "kcal": 193.0 },
-            { "type": "food", "name": "CREAM CHEESE", "amount": 30.0, "prot": 1.6, "fat": 8.0, "carb": 1.3, "kcal": 84.0 },
-            { "type": "food", "name": "MAIONESE", "amount": 12.0, "prot": 0.1, "fat": 3.7, "carb": 0.8, "kcal": 37.0 },
-            { "type": "food", "name": "KETCHUP", "amount": 12.0, "prot": 0.1, "fat": 0.0, "carb": 2.9, "kcal": 13.0 },
-            { "type": "food", "name": "PASTA DE AMENDOIM", "amount": 20.0, "prot": 4.1, "fat": 9.1, "carb": 5.1, "kcal": 117.0 },
+            { "type": "food", "name": "IOGURTE NATURAL (Nestlé)", "amount": 170.0, "prot": 6.8, "fat": 7.0, "carb": 6.8, "kcal": 117.0 },
+            { "type": "food", "name": "PÃO TORTILHA RAP10 (RAP 10)", "amount": 33.0, "prot": 2.72, "fat": 2.31, "carb": 14.85, "kcal": 90.75 },
+            { "type": "food", "name": "PÃO INTEGRAL (Speciale)", "amount": 50.0, "prot": 4.6, "fat": 1.8, "carb": 22.0, "kcal": 123.0 },
+            { "type": "food", "name": "PÃO DE FORMA (Bauducco)", "amount": 50.0, "prot": 4.5, "fat": 2.2, "carb": 25.0, "kcal": 138.0 },
+            { "type": "food", "name": "PÃO DE HAMBURGUER (RealPan)", "amount": 50.0, "prot": 3.5, "fat": 1.0, "carb": 27.0, "kcal": 131.0 },
+            { "type": "food", "name": "REQUEIJÃO LIGHT (Betânia)", "amount": 100.0, "prot": 11.0, "fat": 16.0, "carb": 1.8, "kcal": 193.0 },
+            { "type": "food", "name": "CREAM CHEESE (Philadelphia)", "amount": 30.0, "prot": 1.6, "fat": 8.0, "carb": 1.3, "kcal": 84.0 },
+            { "type": "food", "name": "MAIONESE (Hellmans)", "amount": 12.0, "prot": 0.1, "fat": 3.7, "carb": 0.8, "kcal": 37.0 },
+            { "type": "food", "name": "KETCHUP (Hellmans)", "amount": 12.0, "prot": 0.1, "fat": 0.0, "carb": 2.9, "kcal": 13.0 },
+            { "type": "food", "name": "PASTA DE AMENDOIM (Dr. Peanut)", "amount": 20.0, "prot": 4.1, "fat": 9.1, "carb": 5.1, "kcal": 117.0 },
+            { "type": "food", "name": "SEMENTE DE CHIA (Vitalin)", "amount": 15.0, "prot": 2.9, "fat": 4.6, "carb": 0.5, "kcal": 56.0 },
+            { "type": "food", "name": "CACAU EM PÓ (Áster)", "amount": 20.0, "prot": 4.8, "fat": 2.2, "carb": 4.3, "kcal": 56.0 },
             { "type": "plate", "name": "TAPIOCA COM QUEIJO E CARNE (GRANDE)", "amount": 205, "prot": 18, "fat": 9.5, "carb": 97.75, "kcal": 554.5, "foods": [
-                { "name": "TAPIOCA", "amount": 115, "prot": 0, "fat": 0, "carb": 97.75, "kcal": 391 },
+                { "name": "TAPIOCA (Gosto Mineiro)", "amount": 115, "prot": 0, "fat": 0, "carb": 97.75, "kcal": 391 },
                 { "name": "CARNE DE BOI COZIDA", "amount": 50, "prot": 14, "fat": 5.5, "carb": 0, "kcal": 103.5 },
                 { "name": "QUEIJO MUSSARELA", "amount": 40, "prot": 4, "fat": 4, "carb": 0, "kcal": 60 }
               ]
             },
             { "type": "plate", "name": "PREPARADO DE PASTA DE FRANGO COM REQUEIJÃO E CENOURA", "amount": 700, "prot": 84, "fat": 56, "carb": 25.2, "kcal": 476, "foods": [
-                { "name": "PEITO DE FRANGO", "amount": 300, "prot": 60, "fat": 24, "carb": 0, "kcal": 0 },
-                { "name": "REQUEIJÃO LIGHT", "amount": 200, "prot": 22, "fat": 32, "carb": 3.2, "kcal": 386 },
+                { "name": "PEITO DE FRANGO (Regina)", "amount": 300, "prot": 60, "fat": 24, "carb": 0, "kcal": 0 },
+                { "name": "REQUEIJÃO LIGHT (Betânia)", "amount": 200, "prot": 22, "fat": 32, "carb": 3.2, "kcal": 386 },
                 { "name": "CENOURA", "amount": 200, "prot": 2, "fat": 0, "carb": 22, "kcal": 90 }
               ]
             },
             { "type": "plate", "name": "SANDUÍCHE NATURAL COM PASTA DE FRANGO, REQUEIJÃO E CENOURA", "amount": 110, "prot": 11.7, "fat": 7, "carb": 27.16, "kcal": 178.8, "foods": [
                 { "name": "PREPARADO DE PASTA DE FRANGO COM REQUEIJÃO E CENOURA", "amount": 60, "prot": 7.2, "fat": 4.8, "carb": 2.16, "kcal": 40.8 },
-                { "name": "PÃO DE FORMA", "amount": 50, "prot": 4.5, "fat": 2.2, "carb": 25, "kcal": 138 }
+                { "name": "PÃO DE FORMA (Bauducco)", "amount": 50, "prot": 4.5, "fat": 2.2, "carb": 25, "kcal": 138 }
               ]
             },
             { "type": "plate", "name": "HAMBÚRGUER CASEIRO", "amount": 290, "prot": 40.7, "fat": 48.2, "carb": 27.36, "kcal": 651.6, "foods": [
-                { "name": "PÃO DE HAMBURGUER", "amount": 50, "prot": 3.5, "fat": 1, "carb": 27, "kcal": 131 },
-                { "name": "CARNE DE HAMBURGUER", "amount": 180, "prot": 31, "fat": 40, "carb": 0, "kcal": 482 },
+                { "name": "PÃO DE HAMBURGUER (RealPan)", "amount": 50, "prot": 3.5, "fat": 1, "carb": 27, "kcal": 131 },
+                { "name": "CARNE DE HAMBURGUER (Maturatta Friboi)", "amount": 180, "prot": 31, "fat": 40, "carb": 0, "kcal": 482 },
                 { "name": "QUEIJO MUSSARELA", "amount": 40, "prot": 4, "fat": 4, "carb": 0, "kcal": 60 },
-                { "name": "REQUEIJÃO LIGHT", "amount": 20, "prot": 2.2, "fat": 3.2, "carb": 0.36, "kcal": 38.6 }
+                { "name": "REQUEIJÃO LIGHT (Betânia)", "amount": 20, "prot": 2.2, "fat": 3.2, "carb": 0.36, "kcal": 38.6 }
               ]
             },
             { "type": "plate", "name": "OVOS FRITOS COM AZEITE", "amount": 2, "prot": 12, "fat": 22, "carb": 2, "kcal": 268, "foods": [
@@ -182,30 +183,64 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    document.getElementById('btn-save-initial').addEventListener('click', async () => {
-        const name = document.getElementById('init-name').value;
-        const sex = document.getElementById('init-sex').value;
-        const birth = document.getElementById('init-birth').value;
-        const height = parseFloat(document.getElementById('init-height').value);
-        const weight = parseFloat(document.getElementById('init-weight').value);
-        const activity = parseFloat(document.getElementById('init-activity').value);
-
-        if (!name || !sex || !birth || isNaN(height) || height <= 0 || isNaN(weight) || weight <= 0 || !activity) {
-            return alert("Preencha todos os campos. Peso e altura devem ser valores positivos.");
-        }
-
-        await saveData('Inf_1', { id: 1, name, sex, birth, height });
+    // Função Global de Autocomplete Mobile-friendly 
+    // Obriga a escolher um item existente na lista
+    window.setupAutocomplete = function(inputElem, dataList, onSelectCallback) {
+        let currentFocus;
         
-        let todayData = await getData('Inf_3', today) || { date: today, meals: [] };
-        todayData.weight = weight;
-        todayData.activityLevel = activity;
-        await saveData('Inf_3', todayData);
+        inputElem.addEventListener('input', function(e) {
+            let val = this.value;
+            closeAllLists();
+            if (!val) { onSelectCallback(null); return false; }
+            currentFocus = -1;
+            
+            let listContainer = document.createElement("DIV");
+            listContainer.setAttribute("class", "autocomplete-items");
+            this.parentNode.appendChild(listContainer);
+            
+            let hasMatches = false;
+            for (let i = 0; i < dataList.length; i++) {
+                if (dataList[i].name.toUpperCase().includes(val.toUpperCase())) {
+                    hasMatches = true;
+                    let div = document.createElement("DIV");
+                    div.innerHTML = dataList[i].name;
+                    div.innerHTML += "<input type='hidden' value='" + dataList[i].name + "'>";
+                    div.addEventListener("click", function(e) {
+                        inputElem.value = this.getElementsByTagName("input")[0].value;
+                        closeAllLists();
+                        onSelectCallback(dataList[i]);
+                    });
+                    listContainer.appendChild(div);
+                }
+            }
+            if(!hasMatches) {
+                let div = document.createElement("DIV");
+                div.innerHTML = "<em>Nenhum resultado...</em>";
+                div.style.color = "#999";
+                listContainer.appendChild(div);
+            }
+        });
 
-        document.getElementById('page-first-use').classList.remove('screen-active');
-        document.getElementById('bottom-nav').style.display = 'flex';
-        document.getElementById('page-home').classList.add('screen-active');
-        loadHomePage();
-    });
+        inputElem.addEventListener('blur', () => {
+            // Pequeno atraso para permitir que o clique na lista funcione antes de apagar
+            setTimeout(() => {
+                let valid = dataList.find(x => x.name.toUpperCase() === inputElem.value.toUpperCase());
+                if(!valid) {
+                    inputElem.value = ''; // Limpa se o texto não for igual a um item cadastrado
+                    onSelectCallback(null);
+                }
+                closeAllLists();
+            }, 200);
+        });
+
+        function closeAllLists(elmnt) {
+            let x = document.getElementsByClassName("autocomplete-items");
+            for (let i = 0; i < x.length; i++) {
+                if (elmnt != x[i] && elmnt != inputElem) { x[i].parentNode.removeChild(x[i]); }
+            }
+        }
+        document.addEventListener("click", function (e) { closeAllLists(e.target); });
+    };
 
     function calcAge(birthDateString) {
         const birthDate = new Date(birthDateString);
@@ -366,11 +401,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
-        let datalist = document.getElementById('edit-meal-food-options');
-        if (!datalist) { datalist = document.createElement('datalist'); datalist.id = 'edit-meal-food-options'; document.body.appendChild(datalist); }
-        datalist.innerHTML = '';
-        availableFoods.forEach(f => { const opt = document.createElement('option'); opt.value = f.name; datalist.appendChild(opt); });
-
         const overlay = document.createElement('div');
         overlay.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; display:flex; justify-content:center; align-items:center;";
         
@@ -379,7 +409,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         let rowsHtml = '';
         meal.foods.forEach((f, idx) => {
             rowsHtml += `<tr>
-                <td><input type="text" list="edit-meal-food-options" class="em-f-name" value="${f.name}" style="width:100%;"></td>
+                <td><div style="position:relative;"><input type="text" autocomplete="off" class="em-f-name" value="${f.name}" style="width:100%;"></div></td>
                 <td><input type="number" class="em-f-qty" value="${Math.round(f.amount)}" style="width:100%;" min="1"></td>
                 <td class="em-f-prot">${Math.round(f.prot)}</td><td class="em-f-carb">${Math.round(f.carb)}</td>
                 <td class="em-f-fat">${Math.round(f.fat)}</td><td class="em-f-kcal">${Math.round(f.kcal)}</td>
@@ -414,7 +444,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const nameInput = tr.querySelector('.em-f-name');
             const qtyInput = tr.querySelector('.em-f-qty');
             
-            // Tenta achar alimento base para aplicar regra de 3 (se já foi preenchido)
             const baseFood = availableFoods.find(f => f.name.toLowerCase() === nameInput.value.toLowerCase());
             if(baseFood) {
                 tr.dataset.baseAmount = baseFood.amount; tr.dataset.baseProt = baseFood.prot;
@@ -423,13 +452,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 tr.dataset.baseAmount = 0; tr.dataset.baseProt = 0; tr.dataset.baseCarb = 0; tr.dataset.baseFat = 0; tr.dataset.baseKcal = 0;
             }
 
-            nameInput.addEventListener('input', (e) => {
-                const food = availableFoods.find(f => f.name.toLowerCase() === e.target.value.toLowerCase());
-                if (food) {
-                    qtyInput.value = Math.round(food.amount);
-                    tr.dataset.baseAmount = food.amount; tr.dataset.baseProt = food.prot;
-                    tr.dataset.baseCarb = food.carb; tr.dataset.baseFat = food.fat; tr.dataset.baseKcal = food.kcal;
+            // Atrela o novo Autocomplete
+            window.setupAutocomplete(nameInput, availableFoods, (selectedFood) => {
+                if(selectedFood) {
+                    qtyInput.value = Math.round(selectedFood.amount);
+                    tr.dataset.baseAmount = selectedFood.amount; tr.dataset.baseProt = selectedFood.prot;
+                    tr.dataset.baseCarb = selectedFood.carb; tr.dataset.baseFat = selectedFood.fat; tr.dataset.baseKcal = selectedFood.kcal;
                     updateEmRowVisuals(tr, 1);
+                } else {
+                    updateEmRowVisuals(tr, 0); // Zera se inválido
                 }
             });
 
@@ -449,13 +480,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             tr.querySelector('.em-f-kcal').innerText = Math.round(parseFloat(tr.dataset.baseKcal) * ratio);
         }
 
-        // Binda eventos nas linhas iniciais
         overlay.querySelectorAll('#edit-meal-table tbody tr').forEach(bindRowEvents);
 
         document.getElementById('em-add-row-btn').addEventListener('click', () => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td><input type="text" list="edit-meal-food-options" class="em-f-name" style="width:100%;"></td>
+                <td><div style="position:relative;"><input type="text" autocomplete="off" class="em-f-name" style="width:100%;"></div></td>
                 <td><input type="number" class="em-f-qty" style="width:100%;" min="1"></td>
                 <td class="em-f-prot">0</td><td class="em-f-carb">0</td><td class="em-f-fat">0</td><td class="em-f-kcal">0</td>
                 <td><i class="fa-solid fa-trash remove-em-row" style="color:red; cursor:pointer;"></i></td>
@@ -699,15 +729,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const now = new Date();
         document.getElementById('add-meal-time').value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-        let datalist = document.getElementById('food-options');
-        if (!datalist) { datalist = document.createElement('datalist'); datalist.id = 'food-options'; document.body.appendChild(datalist); }
-        datalist.innerHTML = '';
-        
-        availableFoods.forEach(f => {
-            const opt = document.createElement('option');
-            opt.value = f.name; datalist.appendChild(opt);
-        });
-
         document.getElementById('add-meal-tbody').innerHTML = '';
         addMealRow();
     }
@@ -716,8 +737,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const tbody = document.getElementById('add-meal-tbody');
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><input type="text" list="food-options" class="row-food-name" style="width:100%; box-sizing:border-box;"></td>
-            <td><input type="number" class="row-food-qty" style="width:100%;" min="1"></td>
+            <td><div style="position:relative;"><input type="text" autocomplete="off" class="row-food-name" style="width:100%; box-sizing:border-box;"></div></td>
+            <td><input type="number" class="row-food-qty" style="width:50px;" min="1"></td>
             <td class="row-prot">0</td><td class="row-carb">0</td><td class="row-fat">0</td><td class="row-kcal">0</td>
         `;
         const nameInput = tr.querySelector('.row-food-name');
@@ -725,13 +746,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         tr.dataset.baseAmount = 0; tr.dataset.baseProt = 0; tr.dataset.baseCarb = 0; tr.dataset.baseFat = 0; tr.dataset.baseKcal = 0;
 
-        nameInput.addEventListener('input', (e) => {
-            const food = availableFoods.find(f => f.name.toLowerCase() === e.target.value.toLowerCase());
-            if (food) {
-                qtyInput.value = Math.round(food.amount);
-                tr.dataset.baseAmount = food.amount; tr.dataset.baseProt = food.prot;
-                tr.dataset.baseCarb = food.carb; tr.dataset.baseFat = food.fat; tr.dataset.baseKcal = food.kcal;
+        window.setupAutocomplete(nameInput, availableFoods, (selectedFood) => {
+            if(selectedFood) {
+                qtyInput.value = Math.round(selectedFood.amount);
+                tr.dataset.baseAmount = selectedFood.amount; tr.dataset.baseProt = selectedFood.prot;
+                tr.dataset.baseCarb = selectedFood.carb; tr.dataset.baseFat = selectedFood.fat; tr.dataset.baseKcal = selectedFood.kcal;
                 updateRowVisuals(tr, 1);
+            } else {
+                updateRowVisuals(tr, 0);
             }
         });
 
@@ -776,7 +798,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
-        if (hasError) return alert('Por favor, informe quantidades maiores que zero para os alimentos.');
+        if (hasError) return alert('Por favor, informe quantidades maiores que zero e certifique-se de selecionar os alimentos da lista.');
         if (foodsToSave.length === 0) return alert('Adicione ao menos um alimento.');
 
         let todayData = await getData('Inf_3', today) || { date: today, meals: [] };
@@ -821,7 +843,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             let header = document.createElement('div');
             header.className = 'calendar-header';
-            header.innerHTML = `<span class="calendar-nav" id="cal-prev"><</span><span>${monthNames[month]} de ${year}</span><span class="calendar-nav" id="cal-next">></span>`;
+            
+            // Selector de ano
+            let yearSelect = document.createElement('select');
+            yearSelect.style.cssText = "border: none; font-size: 16px; font-weight: bold; background: transparent; cursor: pointer; outline: none; margin-left: 5px;";
+            for(let y=2020; y<=2035; y++){
+                let opt = document.createElement('option');
+                opt.value = y; opt.innerText = y;
+                if(y === year) opt.selected = true;
+                yearSelect.appendChild(opt);
+            }
+            yearSelect.addEventListener('change', (e) => {
+                renderCalendar(parseInt(e.target.value), 0); // Pula para janeiro do ano selecionado
+            });
+
+            let btnPrev = document.createElement('span'); btnPrev.innerHTML='<'; btnPrev.className='calendar-nav';
+            let btnNext = document.createElement('span'); btnNext.innerHTML='>'; btnNext.className='calendar-nav';
+            let centerCont = document.createElement('span');
+            centerCont.innerText = monthNames[month] + " de ";
+            centerCont.appendChild(yearSelect);
+
+            header.append(btnPrev, centerCont, btnNext);
             popup.appendChild(header);
 
             let grid = document.createElement('div');
@@ -887,11 +929,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if(e.target === overlay) document.body.removeChild(overlay);
             });
 
-            document.getElementById('cal-prev').addEventListener('click', () => {
+            btnPrev.addEventListener('click', () => {
                 let newDate = new Date(year, month - 1, 1);
                 renderCalendar(newDate.getFullYear(), newDate.getMonth());
             });
-            document.getElementById('cal-next').addEventListener('click', () => {
+            btnNext.addEventListener('click', () => {
                 let newDate = new Date(year, month + 1, 1);
                 renderCalendar(newDate.getFullYear(), newDate.getMonth());
             });
@@ -1009,7 +1051,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // =========================================================
-    // LÓGICA DA PÁGINA 5 (ALIMENTOS E PRATOS) COM FUNÇÕES GLOBAIS
+    // LÓGICA DA PÁGINA 5 (ALIMENTOS E PRATOS)
     // =========================================================
     let currentFoodTab = 'alimentos';
 
@@ -1053,8 +1095,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             foods.forEach(f => {
                 html += `<tr>
                     <td>${f.name}<br>
-                        <i class="fa-solid fa-pencil" style="cursor:pointer; color:#555; margin-right:10px;" onclick="window.editItemGlobal(${f.id}, 'food', event)"></i>
-                        <i class="fa-solid fa-trash" style="cursor:pointer; color:red;" onclick="window.delItemGlobal(${f.id}, event)"></i>
+                        <i class="fa-solid fa-pencil" style="cursor:pointer; color:#555; margin-right:10px; margin-top:5px;" onclick="window.editItemGlobal(${f.id}, 'food', event)"></i>
+                        <i class="fa-solid fa-trash" style="cursor:pointer; color:red; margin-top:5px;" onclick="window.delItemGlobal(${f.id}, event)"></i>
                     </td>
                     <td>${f.amount}</td><td>${f.prot}</td><td>${f.carb}</td><td>${f.fat}</td><td>${f.kcal}</td>
                 </tr>`;
@@ -1075,8 +1117,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             plates.forEach(p => {
                 html += `<tr style="background:#eee; cursor:pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'table-row' : 'none'">
                             <td><strong>${p.name}</strong><br>
-                                <i class="fa-solid fa-pencil" style="cursor:pointer; color:#555; margin-right:10px;" onclick="window.editItemGlobal(${p.id}, 'plate', event)"></i>
-                                <i class="fa-solid fa-trash" style="cursor:pointer; color:red;" onclick="window.delItemGlobal(${p.id}, event)"></i>
+                                <i class="fa-solid fa-pencil" style="cursor:pointer; color:#555; margin-right:10px; margin-top:5px;" onclick="window.editItemGlobal(${p.id}, 'plate', event)"></i>
+                                <i class="fa-solid fa-trash" style="cursor:pointer; color:red; margin-top:5px;" onclick="window.delItemGlobal(${p.id}, event)"></i>
                             </td>
                             <td>${Math.round(p.amount)}</td><td>${Math.round(p.prot)}</td><td>${Math.round(p.carb)}</td><td>${Math.round(p.fat)}</td><td>${Math.round(p.kcal)}</td>
                          </tr>
@@ -1157,7 +1199,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         overlay.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:4000; padding: 20px;";
         
         overlay.innerHTML = `
-            <div style="background:#fff; width:100%; height:100%; padding:20px; overflow-y:auto;">
+            <div style="background:#fff; width:100%; height:100%; padding:20px; overflow-y:auto; position: relative;">
                 <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
                     <h3>PESQUISAR ${type === 'food' ? 'ALIMENTO' : 'PRATO'}</h3>
                     <i class="fa-solid fa-xmark close-search" style="cursor:pointer; font-size:24px;"></i>
@@ -1180,8 +1222,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             filtered.forEach(item => {
                 tbody.innerHTML += `<tr>
                     <td><strong>${item.name}</strong><br>
-                        <i class="fa-solid fa-pencil" style="cursor:pointer; color:#555; margin-right:10px;" onclick="window.editItemGlobal(${item.id}, '${type}', event); document.body.removeChild(document.getElementById('search-overlay'));"></i>
-                        <i class="fa-solid fa-trash" style="cursor:pointer; color:red;" onclick="window.delItemGlobal(${item.id}, event); document.body.removeChild(document.getElementById('search-overlay'));"></i>
+                        <i class="fa-solid fa-pencil" style="cursor:pointer; color:#555; margin-right:10px; margin-top:5px;" onclick="window.editItemGlobal(${item.id}, '${type}', event); document.body.removeChild(document.getElementById('search-overlay'));"></i>
+                        <i class="fa-solid fa-trash" style="cursor:pointer; color:red; margin-top:5px;" onclick="window.delItemGlobal(${item.id}, event); document.body.removeChild(document.getElementById('search-overlay'));"></i>
                     </td>
                     <td>${Math.round(item.amount)}</td><td>${Math.round(item.prot)}</td><td>${Math.round(item.carb)}</td><td>${Math.round(item.fat)}</td><td>${Math.round(item.kcal)}</td>
                 </tr>`;
@@ -1249,11 +1291,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const inf2 = await getAllData('Inf_2') || [];
         availableFoods = inf2.filter(item => item.type === 'food'); 
 
-        let datalist = document.getElementById('plate-food-options');
-        if (!datalist) { datalist = document.createElement('datalist'); datalist.id = 'plate-food-options'; document.body.appendChild(datalist); }
-        datalist.innerHTML = '';
-        availableFoods.forEach(f => { const opt = document.createElement('option'); opt.value = f.name; datalist.appendChild(opt); });
-
         const overlay = document.createElement('div');
         overlay.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:5000; display:flex; justify-content:center; align-items:center;";
         
@@ -1263,7 +1300,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if(plateData && plateData.foods) {
             plateData.foods.forEach(f => {
                 initialRowsHTML += `<tr>
-                <td><input type="text" list="plate-food-options" class="p-f-name" value="${f.name}" style="width:100%;"></td>
+                <td><div style="position:relative;"><input type="text" autocomplete="off" class="p-f-name" value="${f.name}" style="width:100%;"></div></td>
                 <td><input type="number" class="p-f-qty" value="${f.amount}" style="width:100%;"></td><td class="p-f-prot">${f.prot}</td><td class="p-f-carb">${f.carb}</td><td class="p-f-fat">${f.fat}</td><td class="p-f-kcal">${f.kcal}</td>
                 <td><i class="fa-solid fa-trash remove-p-row" style="color:red; cursor:pointer;"></i></td></tr>`;
             });
@@ -1298,12 +1335,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 tr.dataset.baseAmount = 0; tr.dataset.baseProt = 0; tr.dataset.baseCarb = 0; tr.dataset.baseFat = 0; tr.dataset.baseKcal = 0;
             }
 
-            nameInput.addEventListener('input', (e) => {
-                const food = availableFoods.find(f => f.name.toLowerCase() === e.target.value.toLowerCase());
-                if (food) {
-                    qtyInput.value = Math.round(food.amount);
-                    tr.dataset.baseAmount = food.amount; tr.dataset.baseProt = food.prot; tr.dataset.baseCarb = food.carb; tr.dataset.baseFat = food.fat; tr.dataset.baseKcal = food.kcal;
+            window.setupAutocomplete(nameInput, availableFoods, (selectedFood) => {
+                if(selectedFood) {
+                    qtyInput.value = Math.round(selectedFood.amount);
+                    tr.dataset.baseAmount = selectedFood.amount; tr.dataset.baseProt = selectedFood.prot;
+                    tr.dataset.baseCarb = selectedFood.carb; tr.dataset.baseFat = selectedFood.fat; tr.dataset.baseKcal = selectedFood.kcal;
                     updatePlateRowVisuals(tr, 1);
+                } else {
+                    updatePlateRowVisuals(tr, 0);
                 }
             });
 
@@ -1326,7 +1365,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if(!plateData || !plateData.foods) {
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td><input type="text" list="plate-food-options" class="p-f-name" style="width:100%;"></td><td><input type="number" class="p-f-qty" style="width:100%;"></td><td class="p-f-prot">0</td><td class="p-f-carb">0</td><td class="p-f-fat">0</td><td class="p-f-kcal">0</td><td><i class="fa-solid fa-trash remove-p-row" style="color:red; cursor:pointer;"></i></td>`;
+            tr.innerHTML = `<td><div style="position:relative;"><input type="text" autocomplete="off" class="p-f-name" style="width:100%;"></div></td><td><input type="number" class="p-f-qty" style="width:100%;"></td><td class="p-f-prot">0</td><td class="p-f-carb">0</td><td class="p-f-fat">0</td><td class="p-f-kcal">0</td><td><i class="fa-solid fa-trash remove-p-row" style="color:red; cursor:pointer;"></i></td>`;
             tbody.appendChild(tr);
             bindPlateRowEvents(tr);
         } else {
@@ -1335,7 +1374,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         document.getElementById('add-p-row-btn').addEventListener('click', () => {
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td><input type="text" list="plate-food-options" class="p-f-name" style="width:100%;"></td><td><input type="number" class="p-f-qty" style="width:100%;"></td><td class="p-f-prot">0</td><td class="p-f-carb">0</td><td class="p-f-fat">0</td><td class="p-f-kcal">0</td><td><i class="fa-solid fa-trash remove-p-row" style="color:red; cursor:pointer;"></i></td>`;
+            tr.innerHTML = `<td><div style="position:relative;"><input type="text" autocomplete="off" class="p-f-name" style="width:100%;"></div></td><td><input type="number" class="p-f-qty" style="width:100%;"></td><td class="p-f-prot">0</td><td class="p-f-carb">0</td><td class="p-f-fat">0</td><td class="p-f-kcal">0</td><td><i class="fa-solid fa-trash remove-p-row" style="color:red; cursor:pointer;"></i></td>`;
             tbody.appendChild(tr);
             bindPlateRowEvents(tr);
         });
@@ -1363,7 +1402,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             });
 
-            if(foodsArray.length === 0) return alert("Insira pelo menos um alimento ao prato.");
+            if(foodsArray.length === 0) return alert("Insira pelo menos um alimento válido ao prato.");
 
             const dataToSave = { type: 'plate', name: pName, amount: sumAmount, prot: sumProt, carb: sumCarb, fat: sumFat, kcal: sumKcal, foods: foodsArray };
             if(plateData) dataToSave.id = plateData.id;
