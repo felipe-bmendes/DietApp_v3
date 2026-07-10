@@ -25,8 +25,8 @@
                 </select>
             </label>
             <label>Data de nascimento: <input type="date" id="init-birth"></label>
-            <label>Altura (cm): <input type="number" id="init-height"></label>
-            <label>Peso (kg): <input type="number" id="init-weight" step="0.1"></label>
+            <label>Altura (cm): <input type="number" id="init-height" min="1"></label>
+            <label>Peso (kg): <input type="number" id="init-weight" step="0.1" min="1"></label>
             <label>Qual o seu nível de atividade física?
                 <select id="init-activity">
                     <option value="1.2">Sedentário: Trabalho de escritório, pouco ou nenhum exercício</option>
@@ -51,17 +51,16 @@
                 <div class="progress-bar-bg"><div id="bar-fat" class="progress-fill yellow-fill"></div><span class="bar-text left" id="text-fat-val">0/0 g</span><span class="bar-text right">GORDURAS</span></div>
             </div>
         </div>
-        <div class="meals-list-block">
+        <div class="meals-list-block" style="margin-top: 40px;">
             <h3>REFEIÇÕES DO DIA</h3>
             <div id="home-meals-container"></div>
         </div>
     </div>
 
-  <!-- PÁGINA 2: OBJETIVOS -->
     <div id="page-goals" class="page">
         <h2 class="top-left-title">METAS DE CONSUMO DIÁRIO</h2>
         <div id="goals-question">
-            <p class="center-text">Você já sabe quanto precisa ingerir?</p>
+            <p class="center-text" id="goals-calc-greeting">Usuário, você já sabe quanto precisa ingerir?</p>
             <div class="flex-row">
                 <button id="btn-goals-yes" class="primary-btn">SIM (inserir manualmente)</button>
                 <button id="btn-goals-no" class="primary-btn">NÃO (vamos calcular!)</button>
@@ -69,7 +68,7 @@
         </div>
         
         <div id="goals-calculator" style="display:none;">
-            <p>Usuário, qual o seu objetivo?</p>
+            <p id="goals-calc-greeting2">Usuário, qual o seu objetivo?</p>
             <button class="calc-btn" data-goal="bulking">Quero ganhar massa muscular (bulking)</button>
             <button class="calc-btn" data-goal="cutting">Quero perder gordura (cutting)</button>
             <button class="calc-btn" data-goal="maintenance">Quero preservar meu peso (manutenção)</button>
@@ -112,7 +111,8 @@
             <label>Nome: <select id="add-meal-name"></select></label>
             <label>Horário: <input type="time" id="add-meal-time"></label>
         </div>
-        <table class="macro-table" id="add-meal-table">
+        <table class="macro-table" id="add-meal-table" style="table-layout: fixed; width: 100%;">
+            <colgroup><col width="35%"><col width="15%"><col width="12.5%"><col width="12.5%"><col width="12.5%"><col width="12.5%"></colgroup>
             <thead><tr><th>ALIMENTO</th><th>QTDE</th><th>PROT</th><th>CARB</th><th>GORD</th><th>KCAL</th></tr></thead>
             <tbody id="add-meal-tbody">
                 </tbody>
@@ -132,23 +132,7 @@
             <canvas id="historyChart"></canvas>
         </div>
         <div id="history-data-macros" class="history-data-grid">
-            <div class="col-left">
-                <p>Meta na época: <span id="hist-meta-kcal"></span></p>
-                <p>GCD: <span id="hist-gcd"></span></p>
-                <p>Calorias: <span id="hist-cal"></span></p>
             </div>
-            <div class="col-center">
-                <p>Proteínas: <span id="hist-prot"></span></p>
-                <p>Carboidratos: <span id="hist-carb"></span></p>
-                <p>Gorduras: <span id="hist-fat"></span></p>
-            </div>
-            <div class="col-right">
-                <p>Meta prot.: <span id="hist-meta-prot"></span></p>
-                <p>Meta carb.: <span id="hist-meta-carb"></span></p>
-                <p>Meta gord.: <span id="hist-meta-fat"></span></p>
-                <button class="small-btn">Alimentos</button>
-            </div>
-        </div>
     </div>
 
     <div id="page-food" class="page">
